@@ -5,29 +5,15 @@ description: Use when an idea needs structured discovery before it becomes one o
 
 # Relay Specification
 
-Turn an ambiguous request into a reviewable specification and independently
-selectable backlog tasks. Read `../../docs/PROTOCOL.md` before writing state.
+Execute this skill; do not quote it. Ask one decision-oriented question at a
+time using the harness's native interaction. Include a recommendation and
+short selectable options when useful; never build a custom UI.
 
-## Interview
+Resolve problem, scope, non-goals, decisions, acceptance criteria, and
+independent task boundaries. Summarize the answers and get confirmation before
+writing when a material assumption remains.
 
-Ask one decision-oriented question at a time. Use the harness's native choice
-or question UI when available; provide a recommendation and concise options,
-but do not implement a custom interface. Continue until the problem, scope,
-non-goals, technical decisions, acceptance criteria, and task boundaries are
-clear enough to act on.
-
-Summarize the answers before writing. Ask for confirmation when a material
-assumption remains or the proposed backlog boundaries change the user's goal.
-
-## Output
-
-1. Create `.specs/<slug>.md` using the specification template.
-2. Append one or more `backlog` entries to `BACKLOG.md`. Each entry must name
-   the spec path, deliver an independent outcome, and have its own acceptance
-   condition.
-3. Report the created spec and backlog IDs.
-
-## Boundary
-
-Do not create TODO items, write `HANDOFF.md`, or implement any backlog task.
-The specification session ends after the backlog is durable and reviewed.
+Then create `.specs/<slug>.md` and append one or more independent entries to
+`.orchestration/BACKLOG.md`. Each entry includes `Status: backlog`, the spec
+path, an outcome, scope, and acceptance condition. Report only the created
+paths and IDs. Do not create TODO items, write a handoff, or implement work.

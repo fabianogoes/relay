@@ -5,24 +5,12 @@ description: Use when a Relay-managed repository needs its current operational s
 
 # Relay Status
 
-Read and validate Relay state without mutation. Read `../../docs/PROTOCOL.md`
-before interpreting records.
+Execute this skill; do not quote it. Read-only inspection only.
 
-## Read order
+Read `AGENTS.md`, then `.orchestration/HANDOFF.md`, `TODO.md`, `BACKLOG.md`,
+and referenced `.specs/` files. Derive exactly one result:
+`in_progress`, `blocked`, `ready`, `backlog`, `idle`, or diagnostic
+`inconsistent`.
 
-Read `AGENTS.md`, `HANDOFF.md`, `TODO.md`, `BACKLOG.md`, and only the source
-specs referenced by active records. Do not infer state from chat history.
-
-## Report
-
-State exactly one of `in_progress`, `blocked`, `ready`, `backlog`, `idle`, or
-the diagnostic `inconsistent`, then report:
-
-- the active backlog, TODO, and spec IDs when present;
-- the next action or the blocker;
-- any failed integrity check with the conflicting paths and IDs.
-
-## Boundary
-
-Do not repair files, select work, clear handoff, or alter statuses. Use
-`relay-session` or an explicit user instruction for mutations.
+Report the active IDs, next action or blocker, and every failed cross-reference
+check. Do not repair files, select work, or change any status.
