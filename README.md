@@ -1,16 +1,20 @@
 # Relay
 
-| Topico | Acesso rapido |
-| --- | --- |
-| Problema | [Por que o Relay existe](#problema) |
-| Modelo operacional | [Arquivos e responsabilidades](#modelo-operacional) |
-| Fluxo | [Da ideia a conclusao](#fluxo) |
-| Fluxos visuais | [Diagramas dos fluxos](#fluxos-visuais) |
-| Estados | [Status e diagnostico](#estados) |
-| Inicio de sessao | [Como retomar o trabalho](#inicio-de-sessao) |
-| Pacote de skills | [Skills `relay-*`](#pacote-de-skills) |
-| Instalacao | [Claude Code, Codex e OpenCode](#instalacao) |
-| Invariantes | [Regras de integridade](#invariantes) |
+## Table of Contents
+
+- [Problema](#problema)
+- [Modelo operacional](#modelo-operacional)
+- [Fluxo](#fluxo)
+- [Fluxos visuais](#fluxos-visuais)
+  - [Setup do projeto](#setup-do-projeto)
+  - [Da ideia ao backlog](#da-ideia-ao-backlog)
+  - [Entrada e retomada de sessao](#entrada-e-retomada-de-sessao)
+  - [Ciclo de uma subtarefa](#ciclo-de-uma-subtarefa)
+- [Estados](#estados)
+- [Inicio de sessao](#inicio-de-sessao)
+- [Pacote de skills](#pacote-de-skills)
+- [Instalacao](#instalacao)
+- [Invariantes](#invariantes)
 
 Relay e um protocolo de memoria operacional portatil para agentes de
 desenvolvimento. Ele permite iniciar um trabalho em um harness, interromper no
