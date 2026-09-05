@@ -7,8 +7,8 @@
     {
       "name": "relay",
       "source": {
-        "source": "local",
-        "path": "../../"
+        "source": "github",
+        "repo": "fabianogoes/relay"
       },
       "policy": {
         "installation": "AVAILABLE",
