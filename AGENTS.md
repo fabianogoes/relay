@@ -44,9 +44,12 @@ Derive the state from the files, rather than chat history:
   a skill's interpretation of a Relay record.
 - `relay-setup` is idempotent and adds a delimited Relay section to an
   existing `AGENTS.md`; it never replaces local instructions.
-- `relay-spec` can create one specification and one or more backlog tasks. It
-  does not start implementation.
+- `relay-spec` can create one specification and one or more backlog tasks, then
+  presents a native choice to create another spec, implement the created spec,
+  or stop. Implementation is delegated to `relay-session`.
 - `relay-status` is read-only.
+- `relay-continue` derives the next step and presents one recommended native
+  choice without mutating state while presenting it.
 - `relay-session` enforces the session-entry rules above.
 
 ## Development rules

@@ -134,14 +134,17 @@ Todo harness deve descobrir o estado antes de agir:
 ## Pacote de skills
 
 `skills/` e a fonte canonica do pacote. Relay sera distribuido como um plugin
-com quatro skills complementares:
+com cinco skills complementares:
 
 - `relay-setup`: instala ou atualiza o protocolo de forma idempotente
   em um repositorio, preservando instrucoes locais existentes em `AGENTS.md`.
 - `relay-spec`: conduz uma entrevista progressiva para transformar uma
-  ideia em uma spec e em N tarefas independentes de backlog.
+  ideia em uma spec e em N tarefas independentes de backlog; ao final oferece
+  caminhos nativos para criar outra spec, implementar a criada ou parar.
 - `relay-status`: le os arquivos, valida invariantes e relata o estado
   sem alterar o repositorio.
+- `relay-continue`: verifica o estado e apresenta o proximo passo como uma
+  escolha nativa com recomendacao, sem alterar arquivos antes da selecao.
 - `relay-session`: comeca pela leitura do estado e entao retoma,
   seleciona a proxima subtarefa, sugere backlog ou aguarda.
 

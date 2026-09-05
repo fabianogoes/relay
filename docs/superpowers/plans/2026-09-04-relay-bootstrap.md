@@ -4,7 +4,7 @@
 
 **Goal:** Turn Relay into a version-controlled, portable protocol package with an explicit bootstrap contract and installation documentation for Claude Code, Codex, and OpenCode.
 
-**Architecture:** Version one is prompt-first: harness-native Agent Skills read and update the Markdown protocol files directly. A shared `skills/` source will define the four `relay-*` skills; thin harness adapters will make the package discoverable without duplicating the protocol. A `relay` CLI is deliberately deferred until the file format has been used in real projects.
+**Architecture:** Version one is prompt-first: harness-native Agent Skills read and update the Markdown protocol files directly. A shared `skills/` source will define the five `relay-*` skills; thin harness adapters will make the package discoverable without duplicating the protocol. A `relay` CLI is deliberately deferred until the file format has been used in real projects.
 
 **Tech Stack:** Markdown, Git, POSIX symbolic links, Agent Skills-compatible `SKILL.md` files.
 
@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Use the `relay-setup`, `relay-spec`, `relay-status`, and `relay-session` names exactly.
+- Use the `relay-setup`, `relay-spec`, `relay-status`, `relay-continue`, and `relay-session` names exactly.
 - Keep statuses in English: `backlog`, `ready`, `in_progress`, `blocked`, `done`, and `idle`.
 - Do not create a custom UI; each harness renders progressive questions natively.
 - Preserve existing repository guidance when `relay-setup` changes a project's `AGENTS.md`.
@@ -36,7 +36,7 @@
 
 - [ ] **Step 1: Create the protocol bootstrap instructions**
 
-Write `AGENTS.md` with the session-entry rules, integrity invariants, and the four skill responsibilities from the README. State that this repository is developing Relay rather than an already-initialized Relay consumer repository.
+Write `AGENTS.md` with the session-entry rules, integrity invariants, and the five skill responsibilities from the README. State that this repository is developing Relay rather than an already-initialized Relay consumer repository.
 
 - [ ] **Step 2: Create the Claude Code compatibility link**
 
@@ -61,6 +61,7 @@ Run `git init`, then `git status --short`. Do not commit and do not configure or
 - Create: `skills/relay-spec/SKILL.md`
 - Create: `skills/relay-status/SKILL.md`
 - Create: `skills/relay-session/SKILL.md`
+- Create: `skills/relay-continue/SKILL.md`
 - Create: `docs/PROTOCOL.md`
 
 **Interfaces:**
@@ -81,11 +82,11 @@ Create `skills/relay-spec/SKILL.md`. It must ask one decision-oriented question 
 
 - [ ] **Step 4: Write the status and session skills**
 
-Create `skills/relay-status/SKILL.md` to report state read-only, including `inconsistent` diagnostics. Create `skills/relay-session/SKILL.md` to follow the startup decision tree and write a handoff only for a valid pending TODO item.
+Create `skills/relay-status/SKILL.md` to report state read-only, including `inconsistent` diagnostics. Create `skills/relay-session/SKILL.md` to follow the startup decision tree and write a handoff only for a valid pending TODO item. Add `relay-continue` to derive state and present the next step as a recommended native choice.
 
 - [ ] **Step 5: Verify skill naming and protocol alignment**
 
-Run `rg -n 'orchestration-(setup|spec|status|session)|relay-' README.md AGENTS.md docs skills`. Expected: no deprecated `orchestration-*` skill names and all four `relay-*` names present. Review every `SKILL.md` against `docs/PROTOCOL.md`.
+Run `rg -n 'orchestration-(setup|spec|status|session)|relay-' README.md AGENTS.md docs skills`. Expected: no deprecated `orchestration-*` skill names and all five `relay-*` names present. Review every `SKILL.md` against `docs/PROTOCOL.md`.
 
 ### Task 3: Add harness installation documentation and adapters
 
@@ -135,9 +136,8 @@ Run `readlink CLAUDE.md` and inspect both JSON manifests with a JSON parser. Exp
 
 - [ ] **Step 2: Validate protocol completeness**
 
-Run `rg -n 'relay-(setup|spec|status|session)' README.md AGENTS.md docs skills`. Expected: all four skills appear in the README, agent guidance, installation docs, and their individual directories.
+Run `rg -n 'relay-(setup|spec|status|continue|session)' README.md AGENTS.md docs skills`. Expected: all five skills appear in the README, agent guidance, installation docs, and their individual directories.
 
 - [ ] **Step 3: Check repository state**
 
 Run `git diff --check` and `git status --short`. Expected: no whitespace errors and all newly created files are visible as untracked changes before the first commit.
-

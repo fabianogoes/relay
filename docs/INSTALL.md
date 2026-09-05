@@ -63,6 +63,7 @@ mkdir -p ~/.config/opencode/skills
 ln -s ~/.config/opencode/relay/skills/relay-setup ~/.config/opencode/skills/relay-setup
 ln -s ~/.config/opencode/relay/skills/relay-spec ~/.config/opencode/skills/relay-spec
 ln -s ~/.config/opencode/relay/skills/relay-status ~/.config/opencode/skills/relay-status
+ln -s ~/.config/opencode/relay/skills/relay-continue ~/.config/opencode/skills/relay-continue
 ln -s ~/.config/opencode/relay/skills/relay-session ~/.config/opencode/skills/relay-session
 ```
 
