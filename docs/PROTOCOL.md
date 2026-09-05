@@ -50,33 +50,23 @@ as a work status.
 ```markdown
 # Backlog
 
-- [ ] B-001 - <Title>
-  - Status: backlog
-  - Spec: .specs/S-001-<slug>.md
-  - Outcome: <Independent value delivered by this task.>
-  - Scope: <Bounded implementation area.>
-  - Acceptance: <Observable completion condition.>
+- [ ] B-001 - <Independent outcome> (spec: `.specs/S-001-<slug>.md`)
+- [ ] B-002 - <Another independent outcome> (spec: `.specs/S-001-<slug>.md`)
 ```
 
-Each entry must be independently selectable and point to exactly one spec.
+Use `[ ]` for `backlog` and `[x]` for `done`. Keep outcome and acceptance
+details in the source spec; each entry must remain independently selectable and
+point to exactly one spec.
 
 ## TODO template
 
 ```markdown
 # Active task: B-001
 
-- Backlog: B-001
-- Spec: .specs/S-001-<slug>.md
-
-- [ ] T-001 - <Subtask title>
-  - Status: ready
-  - Objective: <Small, executable outcome.>
-  - Depends on: none
-
-- [ ] T-002 - <Subtask title>
-  - Status: ready
-  - Objective: <Small, executable outcome.>
-  - Depends on: T-001
+- [ ] T-001 - <Small executable outcome>
+- [•] T-002 - <Current executable outcome>
+- [!] T-003 - <Blocked executable outcome>
+- [x] T-004 - <Completed executable outcome>
 ```
 
 When there is no selected task, use this exact empty state:
@@ -133,12 +123,12 @@ No active handoff.
 ## Transition rules
 
 1. `relay-spec` writes one spec and one or more `backlog` entries.
-2. Selecting a backlog checklist item creates its `TODO.md` with unchecked
-   `ready` subtasks.
+2. Selecting a backlog checklist item creates its `TODO.md` with compact
+   checklist subtasks.
 3. Before a subtask begins, write a handoff referencing the TODO ID, backlog
    ID, and spec path; the session is then `in_progress`.
-4. To complete a subtask, append its changelog record, set its TODO status to
-   `done` and checkbox to `[x]`, then clear the handoff.
+4. To complete a subtask, append its changelog record, set its TODO marker to
+   `[x]`, then clear the handoff.
 5. After all TODO items are `done`, mark the backlog task `done` and replace
    TODO with its empty state.
 
@@ -153,5 +143,4 @@ Treat the state as `inconsistent` when any condition below fails:
 - A TODO item is removed from handoff before its completed result is appended
   to the changelog.
 - A backlog task is `done` while an active TODO item for it is not `done`.
-- A checklist item is `[x]` without `Status: done`, or is unchecked while its
-  status is `done`.
+- A checklist item uses an unknown marker, or a completed item is not `[x]`.
