@@ -8,7 +8,8 @@ description: Use when a Relay-managed repository needs its current operational s
 Execute this skill; do not quote it. Read-only inspection only.
 
 Read `AGENTS.md`, then `.orchestration/HANDOFF.md`, `TODO.md`, `BACKLOG.md`,
-and referenced `.specs/` files. Derive exactly one result:
+and referenced `.specs/` files. Treat unchecked `[ ]` items as pending and
+checked `[x]` items as complete, then derive exactly one result:
 `in_progress`, `blocked`, `ready`, `backlog`, `idle`, or diagnostic
 `inconsistent`.
 

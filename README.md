@@ -50,9 +50,10 @@ CLAUDE.md -> AGENTS.md
 
 - `.specs/` contem contexto, escopo, decisoes, plano e criterios de aceite.
   E a fonte do "como fazer".
-- `BACKLOG.md` contem tarefas implementaveis derivadas de specs. Uma spec pode
-  gerar N tarefas de backlog.
-- `TODO.md` contem as subtarefas da tarefa de backlog escolhida para a sessao.
+- `BACKLOG.md` contem uma checklist de tarefas implementaveis derivadas de
+  specs. Uma spec pode gerar N tarefas de backlog.
+- `TODO.md` contem uma checklist das subtarefas da tarefa de backlog escolhida
+  para a sessao.
 - `HANDOFF.md` contem uma unica subtarefa: o que esta sendo feito agora ou o
   que deve ser retomado agora.
 - `CHANGELOG.md` e o team log append-only das subtarefas concluidas, incluindo

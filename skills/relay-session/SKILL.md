@@ -12,11 +12,11 @@ Read `AGENTS.md`, handoff, TODO, backlog, and referenced specs. If references
 disagree, report `inconsistent` and stop. Otherwise:
 
 - valid handoff: resume it (`in_progress` or `blocked`);
-- empty handoff with pending TODO: report `ready`, then write one valid
+- empty handoff with an unchecked TODO item: report `ready`, then write one valid
   `in_progress` handoff before editing;
 - empty TODO with pending backlog: report `backlog` and wait for selection;
 - no pending work: report `idle`.
 
-When a subtask finishes, append changelog evidence, mark TODO `done`, clear
-handoff, and clear TODO only after all its items finish. Do not silently pick
-backlog work.
+When a subtask finishes, append changelog evidence, mark its TODO item
+`Status: done` and `[x]`, clear handoff, and clear TODO only after all its
+items finish. Do not silently pick backlog work.

@@ -8,8 +8,8 @@ without shared chat history.
 
 | Path | Purpose | Mutation rule |
 | --- | --- | --- |
-| `.specs/<slug>.md` | Detailed intent and acceptance | Created by `relay-spec`; updated only when the specification changes. |
-| `.orchestration/BACKLOG.md` | Independently selectable work | Append tasks from a spec; mark a task `done` only when its TODO is complete. |
+| `.specs/S-001-<slug>.md` | Detailed intent and acceptance | Created by `relay-spec`; updated only when the specification changes. |
+| `.orchestration/BACKLOG.md` | Independently selectable work | Append checklist tasks from a spec; mark a task `done` only when its TODO is complete. |
 | `.orchestration/TODO.md` | Current task's executable subtasks | Replaced when a backlog task is selected; cleared only when every item is `done`. |
 | `.orchestration/HANDOFF.md` | Exactly one current or resumable subtask | Written before work starts; cleared after the completion record exists. |
 | `.orchestration/CHANGELOG.md` | Completed work and evidence | Append-only. |
@@ -23,7 +23,7 @@ as a work status.
 ## Specification template
 
 ```markdown
-# <Specification title>
+# S-001 - <Specification title>
 
 ## Problem
 <Who needs what and why.>
@@ -50,12 +50,12 @@ as a work status.
 ```markdown
 # Backlog
 
-## B-001 - <Title>
-- Status: backlog
-- Spec: .specs/<slug>.md
-- Outcome: <Independent value delivered by this task.>
-- Scope: <Bounded implementation area.>
-- Acceptance: <Observable completion condition.>
+- [ ] B-001 - <Title>
+  - Status: backlog
+  - Spec: .specs/S-001-<slug>.md
+  - Outcome: <Independent value delivered by this task.>
+  - Scope: <Bounded implementation area.>
+  - Acceptance: <Observable completion condition.>
 ```
 
 Each entry must be independently selectable and point to exactly one spec.
@@ -63,20 +63,20 @@ Each entry must be independently selectable and point to exactly one spec.
 ## TODO template
 
 ```markdown
-# Active task
+# Active task: B-001
 
 - Backlog: B-001
-- Spec: .specs/<slug>.md
+- Spec: .specs/S-001-<slug>.md
 
-## T-001 - <Subtask title>
-- Status: ready
-- Objective: <Small, executable outcome.>
-- Depends on: none
+- [ ] T-001 - <Subtask title>
+  - Status: ready
+  - Objective: <Small, executable outcome.>
+  - Depends on: none
 
-## T-002 - <Subtask title>
-- Status: ready
-- Objective: <Small, executable outcome.>
-- Depends on: T-001
+- [ ] T-002 - <Subtask title>
+  - Status: ready
+  - Objective: <Small, executable outcome.>
+  - Depends on: T-001
 ```
 
 When there is no selected task, use this exact empty state:
@@ -95,7 +95,7 @@ No active task.
 - Status: in_progress
 - Backlog: B-001
 - TODO: T-001
-- Spec: .specs/<slug>.md
+- Spec: .specs/S-001-<slug>.md
 - Updated: 2026-09-05
 
 ## Objective
@@ -124,7 +124,7 @@ No active handoff.
 
 ## 2026-09-05 - T-001 - <Subtask title>
 - Backlog: B-001
-- Spec: .specs/<slug>.md
+- Spec: .specs/S-001-<slug>.md
 - Result: <What changed.>
 - Evidence: <Test, inspection, commit, or other verifiable result.>
 - Decisions: <Decision retained for future sessions, or none.>
@@ -133,11 +133,12 @@ No active handoff.
 ## Transition rules
 
 1. `relay-spec` writes one spec and one or more `backlog` entries.
-2. Selecting a backlog task creates its `TODO.md` with `ready` subtasks.
+2. Selecting a backlog checklist item creates its `TODO.md` with unchecked
+   `ready` subtasks.
 3. Before a subtask begins, write a handoff referencing the TODO ID, backlog
    ID, and spec path; the session is then `in_progress`.
 4. To complete a subtask, append its changelog record, set its TODO status to
-   `done`, then clear the handoff.
+   `done` and checkbox to `[x]`, then clear the handoff.
 5. After all TODO items are `done`, mark the backlog task `done` and replace
    TODO with its empty state.
 
@@ -152,3 +153,5 @@ Treat the state as `inconsistent` when any condition below fails:
 - A TODO item is removed from handoff before its completed result is appended
   to the changelog.
 - A backlog task is `done` while an active TODO item for it is not `done`.
+- A checklist item is `[x]` without `Status: done`, or is unchecked while its
+  status is `done`.
