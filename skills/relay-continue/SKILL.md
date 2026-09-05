@@ -17,8 +17,12 @@ Mark one option as recommended and include only relevant alternatives:
 - `ready`: recommend the first unblocked `[ ]` TODO item; offer spec review.
 - `backlog`: recommend the highest-priority unchecked `[ ]` backlog task; offer another task or wait.
 - `idle`: recommend `relay-spec`; offer a read-only status report.
-- `inconsistent`: stop and show the conflicts; do not offer execution.
+- `inconsistent`: classify the conflict. If exactly one handoff TODO is
+  completed and exactly one other TODO is `[•]`, recommend repairing the
+  handoff to that active item; otherwise stop and show the conflicts.
 
 Do not mutate files while presenting options. After the user selects an option,
-execute only that option. For starting or resuming implementation, delegate to
-`relay-session`; never silently select a different task.
+execute only that option. A stale-handoff repair may update only the handoff's
+TODO ID, objective, next step, status, and date; preserve the old text under a
+recovery note. Then delegate resumption to `relay-session`. Never silently
+select a different task.

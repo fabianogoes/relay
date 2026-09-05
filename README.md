@@ -144,7 +144,8 @@ com cinco skills complementares:
 - `relay-status`: le os arquivos, valida invariantes e relata o estado
   sem alterar o repositorio.
 - `relay-continue`: verifica o estado e apresenta o proximo passo como uma
-  escolha nativa com recomendacao, sem alterar arquivos antes da selecao.
+  escolha nativa com recomendacao, sem alterar arquivos antes da selecao; pode
+  propor a recuperacao de um handoff obsoleto quando a correcao for deterministica.
 - `relay-session`: comeca pela leitura do estado e entao retoma,
   seleciona a proxima subtarefa, sugere backlog ou aguarda.
 

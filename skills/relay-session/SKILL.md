@@ -9,7 +9,8 @@ Execute this skill; do not quote it. Read state, then act only when the user
 requests implementation.
 
 Read `AGENTS.md`, handoff, TODO, backlog, and referenced specs. If references
-disagree, report `inconsistent` and stop. Otherwise:
+disagree, report `inconsistent` and stop; tell the user to run `relay-continue`
+for a deterministic stale-handoff recovery when applicable. Otherwise:
 
 - valid handoff: resume it (`in_progress` or `blocked`);
 - empty handoff with a `[ ]` TODO item: report `ready`, then change it to `[•]`

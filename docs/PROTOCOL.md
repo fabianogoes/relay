@@ -153,6 +153,12 @@ No active handoff.
 It executes only the option selected by the user; starting or resuming work is
 delegated to `relay-session`.
 
+When a handoff names a completed TODO item and exactly one other TODO item is
+currently `[•]`, `relay-continue` may offer a stale-handoff recovery. After
+confirmation it updates only the handoff metadata and records the previous
+content as recovery context. Ambiguous conflicts remain blocked for manual
+repair.
+
 ## Integrity checks
 
 Treat the state as `inconsistent` when any condition below fails:

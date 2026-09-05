@@ -49,7 +49,8 @@ Derive the state from the files, rather than chat history:
   or stop. Implementation is delegated to `relay-session`.
 - `relay-status` is read-only.
 - `relay-continue` derives the next step and presents one recommended native
-  choice without mutating state while presenting it.
+  choice without mutating state while presenting it. It may repair a stale
+  handoff only after explicit selection when the active TODO is unambiguous.
 - `relay-session` enforces the session-entry rules above.
 
 ## Development rules
