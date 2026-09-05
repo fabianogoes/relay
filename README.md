@@ -1,5 +1,16 @@
 # Relay
 
+| Contexto | Valor |
+| --- | --- |
+| Projeto | Relay |
+| Repositorio | `github.com/fabianogoes/relay` |
+| Objetivo | Memoria operacional portatil entre harnesses de desenvolvimento |
+| Versao atual | `0.1.0` - protocolo prompt-first |
+| Skills | `relay-setup`, `relay-spec`, `relay-status`, `relay-session` |
+| Estado persistente | `.specs/` e `.orchestration/` |
+| Harnesses alvo | Claude Code, Codex e OpenCode |
+| Interface e runtime | UI nativa de cada harness; sem CLI proprio |
+
 Relay e um protocolo de memoria operacional portatil para agentes de
 desenvolvimento. Ele permite iniciar um trabalho em um harness, interromper no
 meio de uma subtarefa e retomar em outro sem depender da memoria do chat
