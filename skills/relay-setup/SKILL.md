@@ -20,10 +20,18 @@ Never overwrite populated files. If `AGENTS.md` exists, ensure it ends with a
 newline, then append one `## Relay Protocol` section only when absent;
 otherwise create `# Agent guidance` followed by the Relay section. The section
 must require reading handoff, TODO, backlog, and the referenced spec before
-work. When `CLAUDE.md` is absent, create a real symlink with the filesystem
-operation `ln -s AGENTS.md CLAUDE.md`; never create a regular file containing
-the text `AGENTS.md`. Verify with `readlink CLAUDE.md` and report failure if it
-does not return `AGENTS.md`.
+work. Handle `CLAUDE.md` explicitly:
+
+- If it is absent, create a real symlink with `ln -s AGENTS.md CLAUDE.md`.
+- If it is already a symlink, preserve it and verify `readlink CLAUDE.md`
+  returns `AGENTS.md`.
+- If it is a regular file whose complete content is only `AGENTS.md`, treat it
+  as an invalid Relay stub, replace it with the symlink, and verify it.
+- If it is a regular file with any other content, preserve it and report a
+  conflict; never overwrite user guidance.
+
+Never create a regular file containing the text `AGENTS.md`. If the symlink
+operation fails, report the failure instead of silently writing a stub.
 
 Re-read the result, report created paths, and report any inconsistency. On a
 second run, create nothing. Do not select work, write a handoff, or modify a
