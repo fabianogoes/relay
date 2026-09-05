@@ -77,6 +77,11 @@ altering files. OpenCode recognizes skills from `.opencode/skills/`,
 `.claude/skills/`, and `.agents/skills/`, as well as the global
 `~/.config/opencode/skills/` directory.
 
+OpenCode does not turn `SKILL.md` files into `/relay` slash commands. The
+skills appearing in `/skills` confirms discovery; invoke them through a
+natural-language request such as `Use relay-status ...` and OpenCode loads
+the matching skill with its native `skill` tool.
+
 For project-local installation instead:
 
 ```sh

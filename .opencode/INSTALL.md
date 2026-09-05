@@ -28,6 +28,11 @@ Start a new OpenCode session and test the installation with:
 Use relay-status to report the current Relay state.
 ```
 
+OpenCode does not expose these skills as `/relay` slash commands. Seeing
+`relay-setup`, `relay-spec`, `relay-status`, and `relay-session` in `/skills`
+is the expected discovery result; the agent loads one by name through its
+native `skill` tool when the prompt requires it.
+
 To update later:
 
 ```sh
