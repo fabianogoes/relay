@@ -1,0 +1,15 @@
+{
+  "name": "relay",
+  "owner": {
+    "name": "Fabiano Góes"
+  },
+  "metadata": {
+    "description": "Portable operational memory for coding agents."
+  },
+  "plugins": [
+    {
+      "name": "relay",
+      "source": "."
+    }
+  ]
+}

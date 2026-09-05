@@ -1,0 +1,26 @@
+{
+  "name": "relay",
+  "version": "0.1.0",
+  "description": "Portable operational memory for coding agents.",
+  "repository": "https://github.com/fabianogoes/relay",
+  "author": {
+    "name": "Fabiano Góes"
+  },
+  "license": "MIT",
+  "keywords": ["agents", "handoff", "orchestration", "skills"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Relay",
+    "shortDescription": "Portable operational memory for coding agents.",
+    "longDescription": "Keep specifications, backlog tasks, handoffs, and completed work portable across coding harnesses.",
+    "developerName": "Fabiano Góes",
+    "category": "Productivity",
+    "capabilities": ["Interactive", "Read", "Write"],
+    "defaultPrompt": [
+      "Initialize Relay in this repository.",
+      "Create a Relay specification from this idea.",
+      "Show the current Relay work state."
+    ],
+    "brandColor": "#0F766E"
+  }
+}

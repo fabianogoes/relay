@@ -1,0 +1,22 @@
+# Operating system
+.DS_Store
+
+# Editors
+*.swp
+*.swo
+*~
+
+# Local configuration
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+.pytest_cache/
+.coverage
+
+# Future build outputs
+build/
+dist/
+node_modules/
