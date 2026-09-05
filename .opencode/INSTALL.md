@@ -4,19 +4,37 @@ The canonical Relay skills live in the repository's `skills/` directory.
 OpenCode recognizes Agent Skills from `.opencode/skills/`, `.claude/skills/`,
 and `.agents/skills/`, in addition to its global skill directories.
 
-For a GitHub installation, tell OpenCode to fetch and follow this document:
+## Install from GitHub
 
-```text
-Fetch and follow instructions from https://raw.githubusercontent.com/fabianogoes/relay/main/.opencode/INSTALL.md
-```
-
-The remote checkout is:
+Clone the public repository into a stable local directory:
 
 ```sh
-git clone https://github.com/fabianogoes/relay.git
+git clone https://github.com/fabianogoes/relay.git ~/.config/opencode/relay
 ```
 
-For local development, create a symbolic link from one of those discovery
+Expose each Relay skill in OpenCode's global discovery directory:
+
+```sh
+mkdir -p ~/.config/opencode/skills
+ln -s ~/.config/opencode/relay/skills/relay-setup ~/.config/opencode/skills/relay-setup
+ln -s ~/.config/opencode/relay/skills/relay-spec ~/.config/opencode/skills/relay-spec
+ln -s ~/.config/opencode/relay/skills/relay-status ~/.config/opencode/skills/relay-status
+ln -s ~/.config/opencode/relay/skills/relay-session ~/.config/opencode/skills/relay-session
+```
+
+Start a new OpenCode session and test the installation with:
+
+```text
+Use relay-status to report the current Relay state.
+```
+
+To update later:
+
+```sh
+git -C ~/.config/opencode/relay pull --ff-only
+```
+
+For project-local development, create a symbolic link from one of those discovery
 paths to this repository's `skills/` directory. For example, from a target
 project:
 

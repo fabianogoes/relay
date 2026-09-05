@@ -54,8 +54,30 @@ catalog at `.agents/plugins/marketplace.json` for workspace import.
 
 ## OpenCode
 
-OpenCode recognizes Agent Skills from `.opencode/skills/`, `.claude/skills/`,
-and `.agents/skills/`. For local development:
+OpenCode uses native Agent Skills discovery. Execute these commands to install
+Relay from GitHub globally for your user:
+
+```sh
+git clone https://github.com/fabianogoes/relay.git ~/.config/opencode/relay
+mkdir -p ~/.config/opencode/skills
+ln -s ~/.config/opencode/relay/skills/relay-setup ~/.config/opencode/skills/relay-setup
+ln -s ~/.config/opencode/relay/skills/relay-spec ~/.config/opencode/skills/relay-spec
+ln -s ~/.config/opencode/relay/skills/relay-status ~/.config/opencode/skills/relay-status
+ln -s ~/.config/opencode/relay/skills/relay-session ~/.config/opencode/skills/relay-session
+```
+
+Open a new OpenCode session and execute this test prompt:
+
+```text
+Use relay-status to report the current Relay state.
+```
+
+Expected result: OpenCode finds `relay-status` and reports the state without
+altering files. OpenCode recognizes skills from `.opencode/skills/`,
+`.claude/skills/`, and `.agents/skills/`, as well as the global
+`~/.config/opencode/skills/` directory.
+
+For project-local installation instead:
 
 ```sh
 mkdir -p .opencode
