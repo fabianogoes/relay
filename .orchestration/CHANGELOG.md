@@ -72,3 +72,36 @@
 - Evidence: indice lista 0001 a 0004; a tabela ganhou exatamente uma linha; o
   arquivo referenciado existe.
 - Decisions: nenhuma.
+
+## 2026-09-07 - T-001 - ADR-0005 do framework da relay-ui
+- Backlog: B-003
+- Spec: .specs/20260907-001-ui-primeiro-marco-visual.md
+- Result: Vue 3 escolhido; Lit, Preact e React+Vite descartados com o motivo de
+  cada um. Registrado que o custo de migracao foi considerado e descartado como
+  criterio, e por que o raciocinio "invista pouco porque e descartavel" estava
+  errado em duas frentes.
+- Evidence: seis secoes obrigatorias presentes; a decisao 1 cita a secao 8 do
+  design system, que pede CSS global com classe por componente e derruba o
+  argumento de shadow DOM que sustentava o Lit.
+- Decisions: autoria em SFC com TypeScript, porque a garantia da ADR-0003 sobre
+  `inconsistent` e do compilador; sem checagem de tipo na UI ela vira convencao.
+  JSDoc com --checkJs foi considerado e descartado por custo ergonomico.
+
+## 2026-09-07 - T-002 - ADR-0004 decisao 3 estreitada
+- Backlog: B-003
+- Spec: .specs/20260907-001-ui-primeiro-marco-visual.md
+- Result: a decisao 3 da ADR-0004 passou de "sem passo de build obrigatorio"
+  para "sem passo de build entre o clone e as skills". app/ tem o proprio build.
+- Evidence: a cadeia esta visivel nos dois sentidos — 0004 aponta para 0005 na
+  nota de estreitamento e nas consequencias; 0005 aponta para 0004 na decisao 5
+  e nas notas. Nada foi deletado.
+- Decisions: estreitar, nao remover. O proposito da decisao original era
+  proteger a instalacao das skills, e essa garantia continua intacta e
+  verificavel; so a redacao excessiva caiu.
+
+## 2026-09-07 - T-003 - ADR-0005 no indice
+- Backlog: B-003
+- Spec: .specs/20260907-001-ui-primeiro-marco-visual.md
+- Result: ADR-0005 registrada no indice de ADRs do AGENTS.md.
+- Evidence: indice lista 0001 a 0005; todos os arquivos citados existem.
+- Decisions: nenhuma.

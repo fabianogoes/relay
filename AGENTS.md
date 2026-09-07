@@ -41,6 +41,12 @@ not only the choice.
   loopback HTTP and WebSocket, TypeScript throughout, browser UI with the
   application shell deferred, and the rule that the application never writes a
   protocol record.
+- `docs/adr/0005-framework-da-relay-ui.md` — Accepted — Vue 3 for `relay-ui`,
+  with Lit, Preact and React + Vite rejected; the view holds no logic; authoring
+  in SFC with TypeScript, because ADR-0003's guarantee about `inconsistent` is
+  the compiler's. Records that migration cost was weighed and **discarded** as a
+  criterion, since the loopback boundary already makes the UI cheap to replace.
+  Expected to be superseded; nothing else depends on it.
 - `docs/adr/0004-fronteira-e-estrutura-do-app.md` — Accepted — where the UI
   lives and what it may not do: everything under `app/`, no root `package.json`,
   no mandatory build step, the folder carrying its own instructions, and a third

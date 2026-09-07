@@ -55,19 +55,22 @@ manifesto npm.
 `npm install`. Um `package.json` na raiz também redefiniria o que o repositório
 *é* — hoje ele é um pacote de skills, não um projeto Node.
 
-### 3. Sem passo de build obrigatório
+### 3. Sem passo de build entre o clone e as skills
 
-O Node 24 executa `.ts` diretamente por *type stripping*, e `relay-ui` é
-servida como arquivo estático. `tsc --noEmit` existe apenas para checar tipos.
-Não há `dist/`, não há bundler.
+**Estreitada pela [ADR-0005](0005-framework-da-relay-ui.md) decisão 5.** A
+redação original era "sem passo de build obrigatório" e alcançava qualquer
+compilação, inclusive dentro de `app/`. O propósito era proteger a instalação
+das skills; a redação foi além disso.
 
-**Por quê:** o mesmo argumento que a ADR-0001 ponto 2 usa para recusar Rust —
-"custaria uma segunda toolchain no `git clone` de todo contribuidor" — vale
-aqui. Um passo de build é uma toolchain a mais entre o clone e a execução.
+O que vale: nenhum passo de build entre `git clone` e usar as skills.
+`claude --plugin-dir .` e os symlinks de `docs/INSTALL.md` funcionam num clone
+cru. `app/` tem o próprio build, e ninguém precisa executá-lo para instalar ou
+usar o Relay.
 
-Isto é decisão sobre **obrigatoriedade**, não proibição: se a ADR-0005 escolher
-um framework que exija compilação, o build passa a existir dentro de `app/` e
-esta decisão é revista. Ela não deve ser lida como veto ao framework.
+**Por quê:** o argumento da ADR-0001 ponto 2 contra Rust — "custaria uma segunda
+toolchain no `git clone` de todo contribuidor" — vale para quem instala o
+pacote, que é o uso majoritário e o que não escolheu pagar. Não vale para quem
+desenvolve a interface, que aceitou esse custo ao entrar em `app/`.
 
 ### 4. `app/` carrega as próprias instruções
 
@@ -116,7 +119,9 @@ os registros e escreve em qualquer outro lugar, nunca neles.
 - Uma terceira camada é mais para explicar que duas. O custo se paga porque a
   alternativa — empurrar `app/` para `skills/` — distribuiria a UI para quem só
   quer as skills.
-- A decisão 3 é a mais provável de cair, e cai por consequência da ADR-0005.
+- A decisão 3 era a mais provável de cair, e caiu: a ADR-0005 a estreitou ao
+  escolher autoria em SFC com TypeScript, que exige compilação. A garantia que
+  importava — instalar as skills sem build — permaneceu intacta.
 
 ### Consequência descartada explicitamente
 
