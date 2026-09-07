@@ -91,7 +91,8 @@ Acentos semânticos — cada um com três variantes (tinta, fundo suave, linha):
 | `--green` / `--green-soft` / `--green-line` | `#5fe3b3` / `rgba(95,227,179,.10)` / `rgba(95,227,179,.34)` | `in_progress`, sucesso |
 | `--amber` / `--amber-soft` / `--amber-line` | `#f7cd7a` / `rgba(247,205,122,.10)` / `rgba(247,205,122,.36)` | `blocked`, `inconsistent`, atenção |
 | `--blue` / `--blue-soft` / `--blue-line` | `#93baff` / `rgba(147,186,255,.10)` / `rgba(147,186,255,.32)` | `ready`, `backlog`, seleção |
-| `--purple` / `--purple-soft` / `--purple-line` | `#cfaaff` / `rgba(207,170,255,.10)` / `rgba(207,170,255,.32)` | harness, identidade |
+| `--purple` / `--purple-soft` / `--purple-line` | `#cfaaff` / `rgba(207,170,255,.10)` / `rgba(207,170,255,.32)` | identidade de harness: Codex |
+| `--orange` / `--orange-soft` / `--orange-line` | `#f5a878` / `rgba(245,168,120,.10)` / `rgba(245,168,120,.34)` | identidade de harness: Claude Code |
 | `--on-green` | `#05231a` | texto sobre fundo `--green` sólido |
 
 ### Contraste
@@ -282,14 +283,13 @@ Um item por harness detectado: nome, versão, estado (instalado / não
 autenticado / ausente). "Instalado mas não autenticado" é um estado distinto
 de "não instalado".
 
-**Proposto, não decidido:** um ícone com tom distinto por harness (visto no
-protótipo: laranja para Claude Code, roxo/lavanda para Codex, cinza-neutro
-para não instalado). Isso substituiria o tom único `--purple` que este
-documento especificava antes. Valores de cor exatos não foram confirmados —
-só a existência de tons distintos por identidade. Decisão pendente antes de
-qualquer código usar cor por harness: usar `--purple` para Codex (já
-compatível com a redação anterior) e decidir os tokens que faltam (Claude
-Code, OpenCode) antes de implementar.
+**Cor por identidade, decidido:** `--purple` para Codex, `--orange` para
+Claude Code — nenhum dos dois é usado pelo mapeamento status→tom da seção 3,
+então não há colisão de significado com `--green`/`--amber`/`--blue`.
+OpenCode "não instalado" não recebe tom de identidade — usa `--meta` sobre
+`--line`, mesmo tratamento de qualquer estado desabilitado. Um harness novo
+que apareça no futuro entra sem tom próprio (neutro) até o design system
+decidir um.
 
 ### Header
 Logotipo "Relay" com nome do workspace e caminho completo, abas **Agora** /

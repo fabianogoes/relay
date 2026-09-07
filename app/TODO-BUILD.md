@@ -46,10 +46,3 @@ harness** é lembrada — o `PreflightModal` e o clique de confirmação
 continuam obrigatórios sempre, nas três opções. Ver spec 006 e spec 008 para
 o detalhe.
 
-## Ainda bloqueado
-
-Cores exatas de identidade por harness (laranja para Claude Code, roxo para
-Codex, visto no protótipo) — a existência de tons distintos está registrada
-no design system, mas os valores exatos de cor não foram confirmados por um
-screenshot comprimido. Decisão pendente antes de qualquer código usar isso
-(ver seção "Lista de harnesses" do `docs/design-system/README.md`).
