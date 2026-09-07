@@ -105,3 +105,42 @@
 - Result: ADR-0005 registrada no indice de ADRs do AGENTS.md.
 - Evidence: indice lista 0001 a 0005; todos os arquivos citados existem.
 - Decisions: nenhuma.
+
+## 2026-09-07 - T-001 - Templates de spec e changelog
+- Backlog: B-005
+- Spec: .specs/20260907-002-evidencia-nomeia-criterio.md
+- Result: criterios de aceite passaram a `A-NNN` sem marcador de checklist, com
+  uma secao nova explicando que satisfacao e derivada do changelog e nunca
+  escrita na spec. O registro de changelog ganhou o campo `Criteria`.
+- Evidence: template de spec e de changelog atualizados em docs/PROTOCOL.md; a
+  secao registra que specs com marcador continuam validas e nao sao reescritas.
+- Criteria: A-001, A-002, A-007
+- Decisions: o marcador foi omitido de proposito. Um `[ ]` num criterio le-se
+  como pendencia que vai fechar, quando nada no protocolo o fecha — foi ele que
+  permitiu marcar B-001 concluida com oito criterios aparentemente abertos.
+
+## 2026-09-07 - T-002 - Transicoes e verificacao de integridade
+- Backlog: B-005
+- Spec: .specs/20260907-002-evidencia-nomeia-criterio.md
+- Result: transicao 4 exige que `Criteria` nomeie os criterios avancados ou
+  declare `none`; transicao 5 recusa fechar a ultima entrada de backlog de uma
+  spec quando algum criterio dela nao tem evidencia, com `[!]` e handoff
+  bloqueado nomeando quais faltam. Verificacao de integridade nova.
+- Evidence: o protocolo passou de 12 para 13 verificacoes; a transicao 5 usa o
+  caminho de rejeicao que ja existia, sem status novo.
+- Criteria: A-003, A-004
+- Decisions: `none` e afirmacao como qualquer outra e precisa ser verdadeira —
+  sem isso o campo vira carimbo.
+
+## 2026-09-07 - T-003 - Identificador estavel da verificacao nova
+- Backlog: B-005
+- Spec: .specs/20260907-002-evidencia-nomeia-criterio.md
+- Result: `criteria-without-evidence` acrescentado a tabela da ADR-0003 na mesma
+  mudanca, como a Conformidade 7 exige.
+- Evidence: script conferiu 13 verificacoes no protocolo e 13 identificadores na
+  ADR-0003.
+- Criteria: A-005
+- Decisions: as tres mencoes a "doze verificacoes" na ADR-0003 foram trocadas
+  por formulacao sem contagem, e a Conformidade 7 passou a proibir declarar um
+  total. Contagem em prosa apodrece a cada verificacao nova — esta mudanca ja a
+  teria quebrado.

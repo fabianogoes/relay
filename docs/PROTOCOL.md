@@ -70,12 +70,26 @@ solely to adopt this convention.
 <Decision, rationale, and alternatives rejected.>
 
 ## Acceptance criteria
-- [ ] <Observable result>
+- A-001 - <Observable result>
+- A-002 - <Another observable result>
 
 ## Backlog candidates
 - B-001: <Independent outcome>
 - B-002: <Another independent outcome>
 ```
+
+## Acceptance criteria
+
+A specification's acceptance criteria carry stable `A-NNN` identifiers and **no
+checklist marker**. A criterion is satisfied when at least one changelog record
+names it in `Criteria`; satisfaction is derived, never written into the spec.
+
+The marker is omitted deliberately. A `[ ]` on a criterion reads as pending work
+that will be completed, while nothing in the protocol ever completes it — the
+specification stays unchanged while the work happens around it.
+
+Existing specifications whose criteria use checklist markers remain valid and
+must not be rewritten solely to adopt this convention.
 
 ## Backlog template
 
@@ -191,6 +205,7 @@ No active handoff.
 - Spec: .specs/20260905-001-<slug>.md
 - Result: <What changed.>
 - Evidence: <Test, inspection, commit, or other verifiable result.>
+- Criteria: <Acceptance criterion IDs this subtask advanced, or none.>
 - Decisions: <Decision retained for future sessions, or none.>
 ```
 
@@ -206,9 +221,15 @@ No active handoff.
    `in_progress`. If the user requests the default among multiple available
    TODO items, use the first one in textual order.
 4. To complete a subtask, append its changelog record, set its TODO marker to
-   `[x]`, then clear the handoff.
+   `[x]`, then clear the handoff. The record's `Criteria` names every acceptance
+   criterion of the spec that the subtask advanced, or `none`. `none` is a
+   claim like any other and must be true.
 5. After all TODO items are `done`, mark the backlog task `done` and replace
-   TODO with its empty state.
+   TODO with its empty state. Marking the **last** pending backlog entry of a
+   specification `done` additionally requires every acceptance criterion of that
+   specification to be named by at least one changelog record. When one is not,
+   the entry stays pending: set `[!]` and write a blocked handoff naming the
+   criteria without evidence and what would satisfy them.
 
 `relay-continue` may be used before a session to summarize this state machine.
 It executes only the option selected by the user; starting or resuming work is
@@ -239,3 +260,5 @@ Treat the state as `inconsistent` when any condition below fails:
 - A `needs` reference names an ID absent from the same record.
 - A `needs` relation contains a cycle.
 - An entry is `[x]` while an ID it needs is not `[x]`.
+- Every backlog entry of a specification is `[x]` while an acceptance criterion
+  of that specification is named by no changelog record.

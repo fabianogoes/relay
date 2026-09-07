@@ -176,8 +176,7 @@ interface Violation {
 
 **Por quê:** a tela Reparar precisa "mostrar o conflito e a correção
 determinística". Uma string solta não permite isso. O `check` estável também
-permite testar cada uma das doze verificações de integridade do protocolo
-individualmente.
+permite testar cada verificação de integridade do protocolo individualmente.
 
 ### 9. Cada verificação de integridade tem um identificador estável
 
@@ -199,6 +198,7 @@ supersedir esta ADR, porque a tela Reparar e os testes dependem dele.
 | `needs-unknown-id` | `needs` referencia ID ausente do mesmo registro |
 | `needs-cycle` | Relação de `needs` contém ciclo |
 | `needs-incomplete-on-done` | Entrada `[x]` cujo `needs` não está todo `[x]` |
+| `criteria-without-evidence` | Toda entrada de backlog de uma spec está `[x]` e um critério de aceite dela não é nomeado por nenhum registro de changelog |
 
 ## Fixtures
 
@@ -226,7 +226,7 @@ seguem o tipo. Estes são a fonte; B-004 os materializa como arquivos sob `app/`
       "spec": ".specs/20260907-001-ui-primeiro-marco-visual.md",
       "harness": "claude-code", "updated": "2026-09-07T06:49:14Z",
       "objective": "Validar os fixtures contra o protocolo.",
-      "nextStep": "Rodar as doze verificações de integridade.",
+      "nextStep": "Rodar as verificações de integridade.",
       "context": "T-001 concluída; o tipo está na ADR-0003."
     },
     "todo": [
@@ -308,9 +308,10 @@ view". Pouparia poucas linhas e inverteria a governança do design system.
    `backlog`, e `violations` nunca é vazio.
 6. `updated` é sempre RFC 3339 com offset explícito ou `Z`. Tempo relativo é
    calculado na view e nunca armazenado.
-7. Cada uma das doze verificações de integridade do `docs/PROTOCOL.md` tem um
-   `check` de identificador estável, listado na decisão 9. Uma verificação nova
-   no protocolo acrescenta uma linha àquela tabela na mesma mudança.
+7. Cada verificação de integridade do `docs/PROTOCOL.md` tem um `check` de
+   identificador estável, listado na decisão 9. Uma verificação nova no
+   protocolo acrescenta uma linha àquela tabela na mesma mudança. A tabela não
+   declara um total: contagem em prosa apodrece a cada verificação nova.
 
 ## Notas
 
