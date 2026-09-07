@@ -329,3 +329,16 @@
 - Decisions: a evidência existia desde B-002; o B-007/T-002 pretendia
   nomeá-la retroativamente mas gravou apenas `A-008`. Faltava só o campo
   `Criteria`, não o trabalho.
+
+## 2026-09-07 - T-001 - Proveniencia propria em Criteria
+- Backlog: B-009
+- Spec: .specs/20260907-003-criterio-autoevidenciado.md
+- Result: docs/PROTOCOL.md ganhou a regra de que um registro so nomeia em
+  Criteria o que o proprio Result/Evidence demonstra, nunca em antecipacao.
+  relay-session espelha a regra na mesma frase que ja trata Criteria.
+- Evidence: nenhuma linha de prosa larga nova introduzida; nenhuma skill
+  excede as demais em linhas apos a mudanca (session: 40, as outras: 39/39/39/29).
+- Criteria: A-001, A-002, A-003
+- Decisions: regra de disciplina, sem verificacao mecanica — o proprio scope
+  descartou isso, porque nada no protocolo consegue julgar prosa contra
+  significado. Mesma familia da regra ja existente sobre Criteria: none.

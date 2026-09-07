@@ -98,6 +98,11 @@ makes that recordable instead of ambiguous.
 Existing specifications whose criteria use checklist markers remain valid and
 must not be rewritten solely to adopt this convention.
 
+A record names in `Criteria` only what its own `Result` and `Evidence` already
+demonstrate, never in anticipation of a later record. Naming a criterion ahead
+of the work that satisfies it is a claim like any other and must be true when
+made, not only by the time the specification closes.
+
 ## Backlog template
 
 ```markdown

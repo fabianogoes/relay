@@ -20,20 +20,21 @@ Otherwise:
 - no pending work: report `idle`.
 
 An item is available when it is `[ ]` and every ID in its `needs` is `[x]`.
-TODO order never implies priority, dependency, sequence, or effort, and the user
-may select any available item. Every creation or mutation of a nonempty handoff
-sets `Harness` to the current harness (lowercase,
-matching `[a-z0-9][a-z0-9._-]*`) and `Updated` to the current RFC 3339 timestamp
-(`YYYY-MM-DDTHH:MM:SSZ` or `YYYY-MM-DDTHH:MM:SS±HH:MM`), together, never
-inferred from filesystem metadata.
+TODO order never implies priority, dependency, sequence, or effort, and the
+user may select any available item. Every creation or mutation of a nonempty
+handoff sets `Harness` to the current harness (`[a-z0-9][a-z0-9._-]*`) and
+`Updated` to the current RFC 3339 timestamp (`YYYY-MM-DDTHH:MM:SSZ` or with an
+explicit offset), together, never inferred from filesystem metadata.
 
-When a subtask finishes, append its changelog record with `Criteria` naming the
-criteria it advanced — qualified as `YYYYMMDD-NNN/A-NNN` when from another spec
-— or `none` when truthful, mark its TODO item `[x]`, clear handoff, and clear
-TODO only after all its items finish. When another available item remains, mark
-it `[•]` and write its handoff before touching a file for it — this repeats for
-every subtask, not only the first. Before marking the last pending backlog entry
-of a spec `done`, confirm every criterion of that spec is named by some
-changelog record; when one is not, leave it pending with `[!]` and a blocked
-handoff naming what is missing. Set `[!]` and a blocked handoff with current
-provenance whenever work cannot continue. Do not silently pick backlog work.
+When a subtask finishes, append its changelog record with `Criteria` naming
+only what that record's own `Result`/`Evidence` demonstrates, never a
+criterion a later record will satisfy — qualified as `YYYYMMDD-NNN/A-NNN` when
+from another spec, `none` when truthful — mark its TODO item `[x]`, clear
+handoff, and clear TODO only after all its items finish. When another
+available item remains, mark it `[•]` and write its handoff before touching a
+file for it — this repeats for every subtask, not only the first. Before
+marking the last pending backlog entry of a spec `done`, confirm every
+criterion of that spec is named by some record; when one is not, leave it
+pending with `[!]` and a blocked handoff naming what is missing. Set `[!]` and
+a blocked handoff with current provenance whenever work cannot continue. Do
+not silently pick backlog work.

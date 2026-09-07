@@ -1,3 +1,3 @@
-# Active task: B-009
+# Active task
 
-- [•] T-001 - Acrescentar a regra de proveniencia ao protocolo e a relay-session
+No active task.
