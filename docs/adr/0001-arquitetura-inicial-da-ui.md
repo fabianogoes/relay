@@ -2,7 +2,7 @@
 
 ## Status
 
-**Proposed** — 2026-09-06.
+**Accepted** — 2026-09-07. Proposta em 2026-09-06.
 
 As cinco premissas do documento-fonte entram nesta ADR como **restrições
 dadas**, não como parte da decisão sob avaliação: a UI vai existir; ajustar a

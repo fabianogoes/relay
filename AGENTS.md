@@ -31,7 +31,7 @@ Write one when a decision affects structure, an architecture characteristic, a
 dependency, an interface, or a construction technique. Record the reasoning,
 not only the choice.
 
-- `docs/adr/0001-arquitetura-inicial-da-ui.md` — Proposed — initial UI
+- `docs/adr/0001-arquitetura-inicial-da-ui.md` — Accepted — initial UI
   architecture: the `relay-core` / `relay-host` / `relay-ui` boundary over
   loopback HTTP and WebSocket, TypeScript throughout, browser UI with the
   application shell deferred, and the rule that the application never writes a
