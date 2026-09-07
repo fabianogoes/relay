@@ -144,3 +144,30 @@
   por formulacao sem contagem, e a Conformidade 7 passou a proibir declarar um
   total. Contagem em prosa apodrece a cada verificacao nova — esta mudanca ja a
   teria quebrado.
+
+## 2026-09-07 - T-001 - Skills alinhadas ao contrato
+- Backlog: B-006
+- Spec: .specs/20260907-002-evidencia-nomeia-criterio.md
+- Result: relay-spec passou a escrever criterios como `A-NNN` sem marcador;
+  relay-session passou a exigir `Criteria` no registro e a confirmar que todo
+  criterio da spec tem evidencia antes de fechar a ultima entrada de backlog
+  dela; relay-status passou a tratar a ausencia disso como `inconsistent`.
+- Evidence: as tres skills citam o contrato novo; a regra da transicao 5 esta em
+  relay-session linha 35.
+- Criteria: A-006
+- Decisions: nenhuma skill nova. As tres mudancas cabem nas existentes, o que
+  mantem o registro de cinco skills que a instalacao ja documenta.
+
+## 2026-09-07 - T-002 - Limites e vocabulario verificados
+- Backlog: B-006
+- Spec: .specs/20260907-002-evidencia-nomeia-criterio.md
+- Result: as cinco skills voltaram a ficar abaixo de 40 linhas apos a expansao,
+  por compressao de paragrafos anteriores em relay-spec e relay-session.
+- Evidence: contagem por arquivo — continue 39, session 39, setup 39, spec 39,
+  status 29. Nenhuma linha de prosa larga introduzida, medido contra HEAD em
+  caracteres e nao em bytes. Frontmatter intacto nas cinco. Nenhum resquicio de
+  `unblocked` nem de contagem em prosa.
+- Criteria: A-006
+- Decisions: a expansao custou seis linhas e foram todas recuperadas cortando
+  redundancia, nao conteudo — o limite forcou concisao em texto que ja estava
+  prolixo.

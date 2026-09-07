@@ -15,7 +15,9 @@ when it is `[ ]` and every ID in its `needs` is `[x]`. Then derive one result:
 `inconsistent`.
 
 Treat a `needs` reference to an ID absent from the same record, a cycle among
-`needs`, or an `[x]` entry whose needs are incomplete as `inconsistent`.
+`needs`, an `[x]` entry whose needs are incomplete, or a spec whose backlog
+entries are all `[x]` while one of its `A-NNN` acceptance criteria is named by
+no changelog record, as `inconsistent`.
 
 For every nonempty handoff, require `Harness` to match
 `[a-z0-9][a-z0-9._-]*`. Require `Updated` to use the RFC 3339 form
