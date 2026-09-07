@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { InconsistentState, OkState, UiPayload } from '../types'
-import Header from './Header.vue'
 import HandoffCard from './HandoffCard.vue'
 import ChecklistList from './ChecklistList.vue'
 import EmptyState from './EmptyState.vue'
@@ -22,16 +21,12 @@ const status = computed(() => ok.value?.status)
 </script>
 
 <template>
-  <Header :payload="payload" />
-
   <RepairScreen v-if="inconsistent" :violations="inconsistent.violations" />
 
   <template v-else-if="ok">
     <HandoffCard
       v-if="handoff"
       :handoff="handoff"
-      :completed="ok.completed"
-      :total="ok.total"
       :blocked="status === 'blocked'"
     />
 
@@ -39,10 +34,18 @@ const status = computed(() => ok.value?.status)
       v-if="handoff && ok.todo.length > 0"
       title="Subtarefas"
       :entries="ok.todo"
+      :completed="ok.completed"
+      :total="ok.total"
     />
 
     <template v-if="!handoff">
-      <ChecklistList v-if="status === 'ready'" title="Subtarefas" :entries="ok.todo" />
+      <ChecklistList
+        v-if="status === 'ready'"
+        title="Subtarefas"
+        :entries="ok.todo"
+        :completed="ok.completed"
+        :total="ok.total"
+      />
       <ChecklistList v-else-if="status === 'backlog'" title="Backlog" :entries="ok.backlog" />
       <EmptyState v-else-if="status === 'idle'" message="Sem trabalho ativo." />
       <EmptyState v-else-if="status === 'done'" message="Todo o trabalho concluído." />

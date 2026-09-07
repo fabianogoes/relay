@@ -8,3 +8,10 @@ export function formatRelative(updated: string): string {
   if (hours < 24) return `há ${hours} h`
   return `há ${Math.floor(hours / 24)} d`
 }
+
+export function formatAbsolute(updated: string): string {
+  const date = new Date(updated)
+  if (Number.isNaN(date.getTime())) return updated
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
+}

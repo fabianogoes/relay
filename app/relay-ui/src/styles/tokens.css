@@ -22,6 +22,9 @@
   --purple: #cfaaff;
   --purple-soft: rgba(207, 170, 255, 0.10);
   --purple-line: rgba(207, 170, 255, 0.32);
+  --orange: #f5a878;
+  --orange-soft: rgba(245, 168, 120, 0.10);
+  --orange-line: rgba(245, 168, 120, 0.34);
   --on-green: #05231a;
 
   --space-1: 4px;

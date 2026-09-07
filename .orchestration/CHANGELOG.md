@@ -342,3 +342,305 @@
 - Decisions: regra de disciplina, sem verificacao mecanica — o proprio scope
   descartou isso, porque nada no protocolo consegue julgar prosa contra
   significado. Mesma familia da regra ja existente sobre Criteria: none.
+
+## 2026-09-07 - T-001 - Pacote relay-core e types do contrato
+- Backlog: B-010
+- Spec: .specs/20260907-004-relay-core.md
+- Result: criado `app/relay-core/` com `package.json` (type module, scripts
+  `test`/`typecheck`), `tsconfig.json` (NodeNext estrito, sem emit) e
+  `src/types.ts` com os tipos da ADR-0003: `RelayFiles`, `RelayState`
+  (ok/inconsistent), `ChecklistEntry`, `Handoff`, `Violation`, `Environment`
+  e `UiPayload`.
+- Evidence: `tsc --noEmit -p relay-core/tsconfig.json` limpo; workspace
+  `relay-*` reconhece o pacote sem tocar na raiz do repositorio.
+- Criteria: A-005
+- Decisions: Node >=24 com type stripping nativo dispensa passo de build no
+  pacote; testes usam `node:test` — zero dependencia de framework de teste.
+  Os types passam a morar no core; a relay-ui so migra na spec 007.
+
+## 2026-09-07 - T-002 - Parser por linha dos cinco registros
+- Backlog: B-010
+- Spec: .specs/20260907-004-relay-core.md
+- Result: `parse.ts` le por linha: checklist (marcador, id, texto, `spec`,
+  `needs`), header do TODO (`Active task`), handoff (campos chave-valor mais
+  secoes Objective/Next step/Context), changelog (registros com
+  Backlog/Spec/Criteria) e criterios `A-NNN` de uma spec.
+- Evidence: exercitado pelos testes de fixture (cada um dos cinco registros
+  e parseado); nenhum import de biblioteca de AST de Markdown.
+- Criteria: none
+- Decisions: a gramatica e simples e inteiramente especificada no
+  `docs/PROTOCOL.md`; regex por linha, sem parser generico (decisao da spec).
+
+## 2026-09-07 - T-003 - deriveState: status, available, contador e handoff
+- Backlog: B-010
+- Spec: .specs/20260907-004-relay-core.md
+- Result: `derive.ts` deriva os seis status mais `inconsistent`;
+  `available` = marker ` ` e todo `needs` em `[x]`; `completed`/`total`
+  contam apenas as subtarefas do TODO ativo; o handoff publico nao carrega
+  `status` (ADR-0003 decisao 5).
+- Evidence: os sete fixtures passam como golden files; a disponibilidade dos
+  fixtures `backlog`/`ready` confere com a secao `## Dependencies`.
+- Criteria: A-003
+- Decisions: ordem de derivacao — handoff (`in_progress`/`blocked`) primeiro;
+  depois TODO (`ready`, `done` ou `blocked` quando nada esta disponivel,
+  conforme a secao Dependencies); depois backlog (`backlog`/`done`); senao
+  `idle`.
+
+## 2026-09-07 - T-004 - As 13 verificacoes de integridade
+- Backlog: B-010
+- Spec: .specs/20260907-004-relay-core.md
+- Result: `integrity.ts` implementa as 13 verificacoes do protocolo, cada uma
+  produzindo uma `Violation` com o `check` estavel exato da tabela da
+  ADR-0003, na mesma ordem.
+- Evidence: 13 testes individuais, um por `check`, cada um disparando so a
+  violacao esperada; entrada valida nao produz violacao nenhuma.
+- Criteria: A-002
+- Decisions: verificacoes rodam antes de derivar status — qualquer violacao
+  vira `inconsistent`, nunca um status de trabalho (ADR-0003 decisao 2).
+
+## 2026-09-07 - T-005 - Golden files e pureza do pacote
+- Backlog: B-010
+- Spec: .specs/20260907-004-relay-core.md
+- Result: testes de golden file comparam `deriveState` byte a byte contra os
+  sete fixtures de `app/fixtures/`; teste de pureza verifica que `src/` nao
+  importa `node:*` nem referencia `relay-host`.
+- Evidence: `node --test` 23/23 passando; `grep node: relay-core/src/` e
+  `grep relay-host relay-core/src/` vazios.
+- Criteria: A-001, A-004
+- Decisions: fixtures como teste ativo (o gap que a revisao de B-004 achou);
+  o teste de pureza e o guardiao permanente da Conformidade 1 da ADR-0003.
+
+## 2026-09-07 - T-001 - ADR-0006 do contrato HTTP/WS
+- Backlog: B-011
+- Spec: .specs/20260907-005-relay-host.md
+- Result: `docs/adr/0006-contrato-http-ws-do-relay-host.md` escrita antes de
+  qualquer codigo: bind em 127.0.0.1 em porta efemera, token aleatorio por
+  execucao entregue no HTML inicial (nunca em URL/query; no WS, via
+  subprotocol), same-origin em toda rota de API com `GET /` como unico
+  bootstrap, rotas de conteudo bruto para a segunda visao, rota de lancamento
+  reservada (spec 008) e ausente sob `--no-exec`, e watcher de diretorio
+  inteiro empurrando `UiPayload` via WS.
+- Evidence: ADR com sete conformidades verificaveis; indice do AGENTS.md
+  atualizado; `Sec-Fetch-Site`/token/teste 404 documentados como contratos.
+- Criteria: A-001
+- Decisions: token no WS via subprotocol em vez de query string, porque a
+  decisao da spec "nunca em URL/query" nao cabe no handshake de browser.
+
+## 2026-09-07 - T-002 - Pacote relay-host consumindo relay-core
+- Backlog: B-011
+- Spec: .specs/20260907-005-relay-host.md
+- Result: `app/relay-host/` criado (package.json, tsconfig NodeNext), com
+  `relay-core` como dependencia de workspace (exports para `src/index.ts`) e
+  `ws` como unica dependencia de runtime.
+- Evidence: `tsc --noEmit` limpo; `npm install` ligou o workspace; `ws` e
+  `@types/ws` registrados no lockfile.
+- Criteria: A-007
+- Decisions: relay-core consome Node 24 type stripping nativo — exports para
+  `.ts`, sem passo de build entre pacotes do workspace.
+
+## 2026-09-07 - T-003 - Leitor do workspace, state e deteccao de harness
+- Backlog: B-011
+- Spec: .specs/20260907-005-relay-host.md
+- Result: `reader.ts` monta `RelayFiles` dos cinco registros e specs;
+  `state.ts` importa `deriveState` de `relay-core` e monta o `UiPayload`;
+  `harness.ts` detecta Claude Code, Codex e OpenCode (versao via `--version`,
+  estado instalado/nao autenticado/ausente por presenca de artefatos de
+  config no home).
+- Evidence: smoke test de ponta a ponta sobre este repositorio derivou o
+  estado real; `grep` confirma que nenhum parse de protocolo existe no host.
+- Criteria: A-006
+- Decisions: deteccao de autenticacao e heuristica (presenca de arquivos de
+  config no home); refinada quando os tres CLIs mudarem.
+
+## 2026-09-07 - T-004 - HttpServer em 127.0.0.1 com token, same-origin e 404 da rota de lancamento
+- Backlog: B-011
+- Spec: .specs/20260907-005-relay-host.md
+- Result: `server.ts` sobe HTTP+WS em `127.0.0.1` em porta efemera; toda rota
+  `/api/*` exige `Sec-Fetch-Site: same-origin` + `X-Relay-Token` (403 se
+  faltar); `GET /` e o bootstrap; rotas `state`, `specs`, `specs/:id`,
+  `changelog` e `harnesses`; rota de lancamento nao existe (autenticada devolve
+  404, nao 403), inclusive sob `--no-exec`.
+- Evidence: testes de integracao: bind 127.0.0.1, 403 sem token/origem, 404 de
+  `/api/launch` com e sem `--no-exec`.
+- Criteria: A-002, A-003, A-004
+- Decisions: `server.closeAllConnections()` no close para nao prender o
+  processo com conexoes keep-alive do fetch.
+
+## 2026-09-07 - T-005 - Watcher de diretorios e push via WebSocket
+- Backlog: B-011
+- Spec: .specs/20260907-005-relay-host.md
+- Result: `watcher.ts` observa `.orchestration/` e `.specs/` inteiros e chama
+  `broadcast()`; o WebSocket entrega o `UiPayload` na conexao e a cada mudanca,
+  sem recarregar a pagina.
+- Evidence: teste de integracao escreve em `.orchestration/TODO.md` e recebe
+  pela WS o estado novo (activeBacklogId e todo atualizados).
+- Criteria: A-005
+- Decisions: re-derivar tudo a cada toque e barato (registros pequenos);
+  debounce de 40ms para coalescer eventos do `fs.watch`.
+
+## 2026-09-07 - T-001 - Host serve a UI construida com as metas de bootstrap
+- Backlog: B-013
+- Spec: .specs/20260907-007-dado-real-e-segunda-visao.md
+- Result: `server.ts` passou a servir `app/relay-ui/dist/index.html` no `GET /`
+  com as metas `relay-token`, `relay-workspace` e `relay-exec-enabled` injetadas
+  no `<head>`, e os assets estáticos de `/assets/*` com MIME por extensão; o
+  fallback para o `bootstrapHtml` antigo permanece quando a dist não existe.
+- Evidence: smoke test de ponta a ponta — host rodando serve a UI construída
+  com as três metas no HTML e o asset JS responde `200 text/javascript`. Teste
+  de integração novo em `server.test.ts` (metas presentes + cada asset
+  referenciado responde 200). Testes do host seguem 9/9.
+- Criteria: none
+- Decisions: servir a dist decidido aqui (ADR-0006 deixou a forma de servir o
+  HTML como assunto da spec 007); metas no HTML preservam o bootstrap do token
+  sem rota de API extra. O componente `PreflightModal` mínimo nasce junto para
+  a porta "+ nova spec"; o modal completo com argv e launch é a spec 008.
+
+## 2026-09-07 - T-002 - Cliente WebSocket com reconexão e backoff
+- Backlog: B-013
+- Spec: .specs/20260907-007-dado-real-e-segunda-visao.md
+- Result: `src/lib/relay-client.ts` conecta ao `ws://host/ws` com subprotocol
+  `relay.<token>`, expõe `payload`/`connected` reativos e reconecta com backoff
+  exponencial (500ms → 10s), relendo o token do bootstrap a cada tentativa
+  (token é por execução do host). `App.vue` usa o cliente e renderiza o
+  `UiPayload` real; sem host (modo fixture), não conecta.
+- Evidence: `npm run build` e `vue-tsc` limpos; a lógica de refresh de token no
+  reconnect cobre "matar e religar o host" sem recarregar a página. Cliente WS
+  com mesma origem + subprotocol validado pelo teste de integração do host.
+- Criteria: A-001, A-002
+- Decisions: token lido de novo a cada tentativa porque o host regenera o token
+  por execução; reconectar com token velho falharia para sempre após restart.
+
+## 2026-09-07 - T-003 - Segunda visão: três colunas e PreflightModal
+- Backlog: B-013
+- Spec: .specs/20260907-007-dado-real-e-segunda-visao.md
+- Result: `WorkScreen.vue` com três colunas simultâneas — Specs (lista de
+  `GET /api/specs`, com contagem de tarefas), Backlog (filtrado do próprio
+  `RelayState.backlog` pelo campo `spec` da entrada selecionada, sem rota
+  nova) e Changelog (`GET /api/changelog`). Porta "+ nova spec" no cabeçalho da
+  coluna Specs abrindo o `PreflightModal` mínimo; nenhum dos três componentes
+  emite requisição de escrita.
+- Evidence: a coluna do meio reusa `payload.state.backlog` filtrado por
+  `spec === '.specs/<id>'`; a coluna de specs e a de changelog usam só `GET`
+  (`grep fetch` em WorkScreen retorna apenas `/api/specs` e `/api/changelog`).
+  `WorkScreen` re-busca specs e changelog a cada mudança de `payload` (watch),
+  então uma escrita em disco que o watcher empurra pela WS re-renderiza as duas
+  visões sem recarregar. Typecheck e build limpos.
+- Criteria: A-004, A-006, A-007
+- Decisions: backlog reaproveitado e não duplicado (decisão da spec); o
+  PreflightModal aqui é o shell da porta — argv, launch e dados reais são a
+  spec 008, e a coluna nunca escreve por conta própria (ADR-0001 ponto 5).
+
+## 2026-09-07 - T-004 - Abas Agora/Trabalho no Header e App
+- Backlog: B-013
+- Spec: .specs/20260907-007-dado-real-e-segunda-visao.md
+- Result: `Header.vue` passou a receber `view` e emitir `update:view`, com as
+  abas Agora/Trabalho alternando entre `MainScreen` e `WorkScreen` no `App.vue`
+  (ref local, sem roteamento). O `MainScreen` deixou de renderizar Header e
+  HarnessSelector, que subiram para o `App` — onde o seletor e o alternador de
+  abas ficam disponíveis nas duas visões.
+- Evidence: alternância é um `ref` em `App.vue`; build e typecheck limpos. A
+  aba Trabalho mostra as três colunas do `WorkScreen` (T-003) e selecionar uma
+  spec filtra a coluna do meio.
+- Criteria: A-003
+- Decisions: roteamento client-side não entra (ADR-0005 deixou em aberto); a
+  segunda visão é alcançada por abas, como o design system descreve.
+
+## 2026-09-07 - T-005 - Seletor de fixture restrito a rota de desenvolvimento
+- Backlog: B-013
+- Spec: .specs/20260907-007-dado-real-e-segunda-visao.md
+- Result: o alternador de fixtures só aparece no modo fixture — quando não há
+  `relay-token` no HTML (dev server) ou quando a URL traz `?fixtures`. Servido
+  pelo host, o seletor não aparece por padrão; continua existindo para trabalho
+  de componente sem `relay-host` rodando.
+- Evidence: `App.vue` computa `fixtureMode` de `!hostMode || ?fixtures`; com o
+  host servindo a UI (smoke test), o HTML não traz o alternador. Build limpo.
+- Criteria: A-005
+- Decisions: `?fixtures` é a rota de desenvolvimento explícita; em dev server
+  sem host, o fixture é o padrão natural.
+
+## 2026-09-07 - T-001 - Infra de harness: tipos, fixture, tons e store de selecao/consentimento
+- Backlog: B-012
+- Spec: .specs/20260907-006-refinamento-visual-prototipo.md
+- Result: `app/relay-ui/src/lib/harness.ts` com os tipos `Harness` e
+  `ConsentLevel`, a fixture de deteccao (claude-code, codex, opencode), os
+  tons de identidade (`--purple` para codex, `--orange` para claude-code,
+  neutro para os demais), helpers (`harnessById`, `harnessInitials`,
+  `harnessTone`) e o store reativo de selecao + consentimento com persistencia
+  por escopo: `none` (nada grava), `session` (Map em memoria), `local`
+  (localStorage chaveado por workspace).
+- Evidence: `npm run typecheck` limpo; o store so toca `localStorage`, nunca
+  `fs` — `grep fs. app/relay-ui/src/lib/harness.ts` vazio; nenhum arquivo novo
+  em disco alem do proprio modulo. `--orange` faltava em `tokens.css` e foi
+  alinhado ao README do design system (que ja o declara), sem decisao nova.
+- Criteria: A-005
+- Decisions: consentimento e estado do navegador, nao do protocolo; nada de
+  escrita em arquivo, e nenhum nivel remove clique de confirmacao de preflight
+  (preflight e da spec 008).
+
+## 2026-09-07 - T-002 - HandoffCard refinado
+- Backlog: B-012
+- Spec: .specs/20260907-006-refinamento-visual-prototipo.md
+- Result: `HandoffCard` passou a renderizar avatar com as iniciais do harness
+  (ton de identidade ou neutro), timestamp absoluto junto do relativo e dos IDs
+  numa linha mono, rotulo `OBJETIVO · B / T`, corpo em duas colunas (Proximo
+  passo / Contexto deixado), caminho da spec no rodape e botao primario
+  nomeando o harness (`▶ Retomar T-002 no {harness}`) mais o secundario
+  "Trocar harness" abrindo o seletor.
+- Evidence: fixture `in_progress` renderiza avatar CC, "B-001 / T-002 ·
+  2026-09-07 06:49", colunas e botao "Retomar T-002 no Claude Code"; fixture
+  `blocked` (escrito por opencode, ausente) cai no primeiro harness disponivel,
+  nao num ausente. `npm run build` limpo.
+- Criteria: A-001
+- Decisions: nenhuma decisao visual nova — layout e rotulos vieram do
+  `docs/design-system/README.md` (secao 6, HandoffCard).
+
+## 2026-09-07 - T-003 - ChecklistList com rotulos textuais e contador
+- Backlog: B-012
+- Spec: .specs/20260907-006-refinamento-visual-prototipo.md
+- Result: `ChecklistList` ganhou rotulo textual por marcador (Feito / Em
+  execucao / Bloqueado / Pendente), destaque de fundo na linha `[•]` ativa e o
+  contador verdadeiro "N de M concluidas" no cabecalho da lista, nunca
+  percentual.
+- Evidence: fixture `in_progress` mostra "1 de 3 concluidas" e a linha T-002
+  `[•]` com fundo `--green-soft`; fixture `blocked` mostra T-003 `[!]` como
+  Bloqueado. `npm run build` limpo.
+- Criteria: A-002
+- Decisions: contador e cabecalho da lista (nao dentro do card), como manda o
+  design system; sem percentual nem posicao.
+
+## 2026-09-07 - T-005 - Seletor de harness e consentimento
+- Backlog: B-012
+- Spec: .specs/20260907-006-refinamento-visual-prototipo.md
+- Result: componente `HarnessSelector` (overlay standalone) lista os harnesses
+  da fixture com nome, versao e estado, cada um com ton de identidade de
+  `--purple`/`--orange` (ausente fica neutro e desabilitado); tres niveis de
+  consentimento nomeados (So esta execucao / Enquanto a app estiver aberta /
+  Sempre neste workspace); rodape que nomeia o escopo do nivel selecionado e
+  muda junto com ele. Abre pelo selo do Header e pelo botao "Trocar harness".
+- Evidence: `npm run build` limpo; selecionar "Sempre neste workspace" grava em
+  `localStorage` (chave `relay.harness:<workspace>`); com "So esta execucao"
+  marcado o rodape diz "Vale so para esta execucao; nada e gravado" e nenhum
+  outro texto da tela promete gravacao. Nenhum componente pinta harness com
+  `--blue`/`--green`/`--amber`.
+- Criteria: A-004, A-006, A-007
+- Decisions: tons de identidade no seletor e no selo vindo do mesmo
+  `harnessTone()`; harness desabilitado (ausente) nao recebe tom; o seletor
+  aqui e isolado — o preflight inline (spec 008) e que recebera este componente
+  embutido.
+
+## 2026-09-07 - T-004 - Header com abas e selo de harness
+- Backlog: B-012
+- Spec: .specs/20260907-006-refinamento-visual-prototipo.md
+- Result: `Header` ganhou nome + caminho do workspace, abas Agora/Trabalho e um
+  selo compacto do harness ativo (avatar com iniciais no tom de identidade,
+  nome e escopo do consentimento) que abre o seletor ao clicar; StatusPill a
+  direita. `MainScreen` renderiza o `HarnessSelector` e inicia o store com o
+  workspace do payload.
+- Evidence: `npm run typecheck` e `npm run build` limpos; o selo usa os mesmos
+  helpers de ton do seletor, entao codex/claude-code aparecem em
+  purple/orange e nenhum harness em blue/green/amber; a aba Trabalho fica
+  desabilitada (a segunda visao de tres colunas e a spec 007, nao esta no
+  escopo de B-012).
+- Criteria: A-003
+- Decisions: aba Trabalho presente mas desabilitada ate a spec 007 entregar a
+  segunda visao; selo compacto conforme o design system (secao 6, Header).

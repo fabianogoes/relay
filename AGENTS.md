@@ -36,6 +36,15 @@ Write one when a decision affects structure, an architecture characteristic, a
 dependency, an interface, or a construction technique. Record the reasoning,
 not only the choice.
 
+- `docs/adr/0006-contrato-http-ws-do-relay-host.md` — Accepted — the HTTP/WS
+  surface between `relay-host` and `relay-ui`: bind only on `127.0.0.1` on an
+  ephemeral port, a per-execution token delivered in the initial HTML (never
+  in URL or query string), same-origin required on every API route with
+  `GET /` as the sole token bootstrap, raw-content routes for the second view,
+  the launch route reserved for spec 008 and absent under `--no-exec`
+  (authed request gets `404`, not `403`), harness detection on its own
+  endpoint outside the `UiPayload`, and whole-directory watching that pushes a
+  fresh `UiPayload` over WebSocket.
 - `docs/adr/0001-arquitetura-inicial-da-ui.md` — Accepted — initial UI
   architecture: the `relay-core` / `relay-host` / `relay-ui` boundary over
   loopback HTTP and WebSocket, TypeScript throughout, browser UI with the
