@@ -1,0 +1,17 @@
+{
+  "state": {
+    "kind": "ok",
+    "status": "ready",
+    "handoff": null,
+    "activeBacklogId": "B-004",
+    "todo": [
+      { "id": "T-001", "text": "Materializar os sete fixtures", "marker": "x", "needs": [], "available": false },
+      { "id": "T-002", "text": "Escrever tokens.css", "marker": "x", "needs": [], "available": false },
+      { "id": "T-003", "text": "Scaffold da relay-ui", "marker": " ", "needs": ["T-001", "T-002"], "available": true }
+    ],
+    "backlog": [],
+    "completed": 2,
+    "total": 3
+  },
+  "environment": { "workspace": "/Users/exemplo/relay", "execEnabled": false }
+}

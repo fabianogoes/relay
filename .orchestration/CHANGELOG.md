@@ -227,3 +227,105 @@
 - Decisions: defeito nasceu de eu mesmo escrever `Criteria: A-008` sem
   qualificar enquanto documentava trabalho de outra spec — o proprio uso da
   regra nova expos o buraco nela.
+
+## 2026-09-07 - T-001 - Sete fixtures materializados em disco
+- Backlog: B-004
+- Spec: .specs/20260907-001-ui-primeiro-marco-visual.md
+- Result: os sete fixtures normativos da ADR-0003 passaram a existir como
+  arquivos sob `app/fixtures/` — `idle.json`, `backlog.json`, `ready.json`,
+  `in_progress.json`, `blocked.json`, `done.json` e `inconsistent.json`.
+  Os blocos `in_progress` e `inconsistent` são os dois JSON normativos da ADR;
+  os outros cinco foram derivados da tabela de fixtures e do tipo `UiPayload`.
+- Evidence: os sete arquivos parseiam com `JSON.parse`; cada um segue o
+  `UiPayload` — `ok` carrega `status`, `handoff`, `todo`, `backlog`,
+  `completed` e `total`; `inconsistent` não carrega `status`, `handoff`, `todo`
+  nem `backlog`, e `violations` não é vazio (decisão 2 da ADR-0003 valendo).
+- Criteria: A-003
+- Decisions: o `done` é a forma de conclusão — backlog todo `[x]`, TODO e
+  handoff vazios — e cai na tela Escolher com estado vazio, já que o design
+  system não lhe atribui tela própria.
+
+## 2026-09-07 - T-002 - tokens.css e app.css derivados do design system
+- Backlog: B-004
+- Spec: .specs/20260907-001-ui-primeiro-marco-visual.md
+- Result: `app/relay-ui/src/styles/tokens.css` com todos os tokens de cor
+  (seção 2), espaçamento e raio (seção 5) e tipografia (seção 4) do design
+  system; `app.css` global com as classes por componente (`status-pill`,
+  `handoff-card`, `header`, `checklist`, `repair`, `empty-state`) e estados em
+  sufixo, consumindo apenas `var(--token)`.
+- Evidence: `grep` por `#hex` e `rgba(` em `app.css` retorna vazio — nenhum
+  literal fora de `tokens.css`. O mapeamento status→tom (seção 3) vive nas
+  classes de modificador e referencia os tokens sem cor literal.
+- Criteria: A-005
+- Decisions: tipografia também foi tokenizada (`--size-*`, `--weight-*`,
+  `--font-*`), e não só cor/espaçamento/raio, para que nenhum valor literal
+  precise morar em `app.css`.
+
+## 2026-09-07 - T-003 - Scaffold da relay-ui
+- Backlog: B-004
+- Spec: .specs/20260907-001-ui-primeiro-marco-visual.md
+- Result: `app/relay-ui/` com `package.json`, `vite.config.ts` (alias `@` e
+  `@fixtures`), `tsconfig.json`, `index.html` (fontes do design system),
+  `src/main.ts`, `src/env.d.ts`, `src/types.ts` (tipos da ADR-0003) e
+  `src/fixtures.ts` carregando os sete JSON. `main.ts` importa `tokens.css` e
+  `app.css`.
+- Evidence: `npm install` concluído na raiz do workspace `app/`; `npm run
+  typecheck` (vue-tsc --noEmit) passa limpo. `node_modules/` e `dist/` já
+  cobertos pelo `.gitignore`.
+- Criteria: A-004
+- Decisions: nenhum router nem biblioteca de estado — a ADR-0005 deixou ambos
+  indecisos de propósito. O alternador de fixture usa um `ref` simples.
+
+## 2026-09-07 - T-004 - Tela principal renderiza os sete fixtures
+- Backlog: B-004
+- Spec: .specs/20260907-001-ui-primeiro-marco-visual.md
+- Result: componentes `Header`, `StatusPill`, `HandoffCard`, `ChecklistList`,
+  `EmptyState`, `RepairScreen` e `MainScreen`. `App.vue` troca o `UiPayload`
+  inteiro por um alternador de fixture; o mesmo `MainScreen` renderiza os sete
+  estados — Retomar (`in_progress`, `blocked`), Escolher (`ready`, `backlog`,
+  `idle`, `done`) e Reparar (`inconsistent`).
+- Evidence: `npm run build` (vue-tsc + vite build) passa limpo; dev server
+  serviu `index.html`, `main.ts` e resolveu os sete JSON de `app/fixtures/`
+  via alias (HTTP 200). Nenhum componente calcula `available`, status ou
+  contagem — tudo chega pronto no `UiPayload`; tempo relativo é formatado na
+  view via `formatRelative`.
+- Criteria: A-004
+- Decisions: o mapeamento status→tela mora no `MainScreen` como apresentação
+  (seção 5 do design system), não como lógica de protocolo — a ADR-0003 decisão
+  6 tira tom/tela do contrato, e a view devolve esse mapeamento na hora de
+  desenhar.
+
+## 2026-09-07 - T-005 - Verificação dos critérios A-003, A-004 e A-005
+- Backlog: B-004
+- Spec: .specs/20260907-001-ui-primeiro-marco-visual.md
+- Result: os três critérios restantes da spec 20260907-001 verificados por
+  comando. A-003: sete arquivos de fixture em `app/fixtures/`. A-004: build e
+  typecheck passam e o dev server resolve os sete JSON via alias. A-005:
+  nenhum literal de cor, tamanho ou raio fora do `tokens.css` (os tamanhos
+  `1px`, `32px`, `36px`, `1280px` e `50%` foram tokenizados em
+  `--border-width`, `--control-height*`, `--container-width` e
+  `--radius-round`).
+- Evidence: `ls app/fixtures/*.json | wc -l` = 7; `grep` de `#hex`/`rgba(`/
+  `px`/`%` em `app/relay-ui/src` e `index.html` retorna vazio; `grep` de
+  `fs.`/`writeFile` em `app/` retorna vazio (A-006 re-confirmado);
+  `vue-tsc --noEmit` e `vite build` passam limpos.
+- Criteria: A-003, A-004, A-005
+- Decisions: tamanhos entram na regra de A-005 — a seção 8 do design system
+  proíbe "tamanhos literais", não só cor/espaçamento/raio, então largura do
+  container, alturas de controle e largura de borda também viraram token.
+
+## 2026-09-07 - T-006 - Critérios remanescentes da spec 001 nomeados
+- Backlog: B-004
+- Spec: .specs/20260907-001-ui-primeiro-marco-visual.md
+- Result: os critérios A-001, A-002, A-006 e A-007 da spec 001 — satisfeitos
+  pelo trabalho de B-002 mas nunca nomeados num campo `Criteria` — ganham o
+  registro que a transição 5 exige para fechar a spec.
+- Evidence: A-001 (instalação sem `npm install`) e A-002 (`rm -rf app/`
+  restaura o estado) foram verificados por comando num clone limpo durante
+  B-002 (changelog B-002/T-002); A-006 (nenhum arquivo de `app/` escreve nos
+  registros) confirmado por `grep` sem acesso a `fs`; A-007 pelas três ADRs
+  (0003, 0004, 0005) no índice.
+- Criteria: A-001, A-002, A-006, A-007
+- Decisions: a evidência existia desde B-002; o B-007/T-002 pretendia
+  nomeá-la retroativamente mas gravou apenas `A-008`. Faltava só o campo
+  `Criteria`, não o trabalho.
