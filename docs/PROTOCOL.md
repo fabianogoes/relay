@@ -84,13 +84,15 @@ solely to adopt this convention.
 
 - [ ] B-001 - <Independent outcome> (spec: `.specs/20260905-001-<slug>.md`)
 - [ ] B-002 - <Another independent outcome> (spec: `.specs/20260905-001-<slug>.md`)
+- [ ] B-003 - <Outcome that requires B-001> (spec: `.specs/20260905-001-<slug>.md`) (needs: B-001)
 ```
 
 Use `[ ]` for `backlog` and `[x]` for `done`. Keep outcome and acceptance
-details in the source spec; each entry must remain independently selectable and
-point to exactly one spec. Textual order may define only the deterministic
-default recommendation: the first unchecked entry. It does not encode priority,
-a queue, or a dependency, and the user may select any unchecked entry.
+details in the source spec; each entry points to exactly one spec. Textual order
+may define only the deterministic default recommendation: the first available
+entry. It does not encode priority, a queue, or a dependency. A dependency is
+declared with `needs`, never implied by position, and the user may select any
+available entry.
 
 ## TODO template
 
@@ -101,6 +103,7 @@ a queue, or a dependency, and the user may select any unchecked entry.
 - [•] T-002 - <Current executable outcome>
 - [!] T-003 - <Blocked executable outcome>
 - [x] T-004 - <Completed executable outcome>
+- [ ] T-005 - <Outcome that requires T-004> (needs: T-004)
 ```
 
 When there is no selected task, use this exact empty state:
@@ -112,9 +115,29 @@ No active task.
 ```
 
 TODO item order does not encode dependency, execution sequence, effort, or
-progress percentage. When more than one unblocked `[ ]` item is available, the
-first one in textual order is only the deterministic default recommendation;
-the user may select any unblocked pending item.
+progress percentage. A dependency is declared with `needs`. When more than one
+item is available, the first one in textual order is only the deterministic
+default recommendation; the user may select any available item.
+
+## Dependencies
+
+A checklist entry may declare explicit dependencies with
+`(needs: <ID>[, <ID>]...)`, referencing other IDs in the same record. This is
+the only way to express that one entry requires another; textual position never
+carries that meaning.
+
+An entry is **available** when it is `[ ]` and every ID it needs is `[x]`. Every
+deterministic default selects the first available entry in textual order. An
+entry that is not available is never offered as a default and is never selected
+silently.
+
+Because a `[!]` entry is not `[x]`, entries that need it are unavailable while
+it stays blocked. When no entry is available, none is `[•]`, and entries remain
+incomplete, the record is `blocked`: work cannot proceed until a blocked entry
+is resolved.
+
+`needs` is optional and backward compatible. A record that omits it behaves
+exactly as before.
 
 ## Handoff template
 
@@ -177,10 +200,10 @@ No active handoff.
    whether to create another spec, implement the created spec, or stop.
 2. Selecting any unchecked backlog item creates its `TODO.md` with compact
    checklist subtasks. If the user requests the default, use the first
-   unchecked item in textual order without treating it as higher priority.
+   available item in textual order without treating it as higher priority.
 3. Before a subtask begins, write a handoff referencing the TODO ID, backlog
    ID, spec path, origin harness, and update timestamp; the session is then
-   `in_progress`. If the user requests the default among multiple unblocked
+   `in_progress`. If the user requests the default among multiple available
    TODO items, use the first one in textual order.
 4. To complete a subtask, append its changelog record, set its TODO marker to
    `[x]`, then clear the handoff.
@@ -213,3 +236,6 @@ Treat the state as `inconsistent` when any condition below fails:
   to the changelog.
 - A backlog task is `done` while an active TODO item for it is not `done`.
 - A checklist item uses an unknown marker, or a completed item is not `[x]`.
+- A `needs` reference names an ID absent from the same record.
+- A `needs` relation contains a cycle.
+- An entry is `[x]` while an ID it needs is not `[x]`.

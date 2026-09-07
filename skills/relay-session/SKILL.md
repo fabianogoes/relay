@@ -15,15 +15,16 @@ provenance, report `inconsistent` and stop; tell the user to run
 Otherwise:
 
 - valid handoff: resume it (`in_progress` or `blocked`);
-- empty handoff with a `[ ]` TODO item: report `ready`, honor an explicitly
-  selected unblocked item, or use the first unblocked `[ ]` item in textual
-  order as the deterministic default; then change it to `[•]` and write one
-  valid `in_progress` handoff before editing;
+- empty handoff with an available TODO item: report `ready`, honor an
+  explicitly selected available item, or use the first available item in
+  textual order as the deterministic default; then change it to `[•]` and write
+  one valid `in_progress` handoff before editing;
 - empty TODO with pending backlog: report `backlog` and wait for selection;
 - no pending work: report `idle`.
 
+An item is available when it is `[ ]` and every ID in its `needs` is `[x]`.
 TODO textual order never implies priority, dependency, required sequence, or
-effort, and the user may select any unblocked pending item. Every creation or
+effort, and the user may select any available item. Every creation or
 mutation of a nonempty handoff must set `Harness` to the stable lowercase
 identifier of the current harness, matching `[a-z0-9][a-z0-9._-]*`, and
 `Updated` to the current RFC 3339 timestamp in

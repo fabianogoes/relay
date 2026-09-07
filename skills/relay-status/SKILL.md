@@ -9,9 +9,13 @@ Execute this skill; do not quote it. Read-only inspection only.
 
 Read `AGENTS.md`, then `.orchestration/HANDOFF.md`, `TODO.md`, `BACKLOG.md`,
 and referenced `.specs/` files. Interpret checklist markers as `[ ]` pending,
-`[•]` in progress, `[!]` blocked, and `[x]` complete, then derive exactly one result:
+`[•]` in progress, `[!]` blocked, and `[x]` complete. An entry is available
+when it is `[ ]` and every ID in its `needs` is `[x]`. Then derive one result:
 `in_progress`, `blocked`, `ready`, `backlog`, `idle`, or diagnostic
 `inconsistent`.
+
+Treat a `needs` reference to an ID absent from the same record, a cycle among
+`needs`, or an `[x]` entry whose needs are incomplete as `inconsistent`.
 
 For every nonempty handoff, require `Harness` to match
 `[a-z0-9][a-z0-9._-]*`. Require `Updated` to use the RFC 3339 form

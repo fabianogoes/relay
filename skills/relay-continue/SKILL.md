@@ -20,10 +20,10 @@ Mark one option as recommended and include only relevant alternatives:
   resuming the current handoff, and offer context review.
 - `blocked`: show its origin harness and update timestamp, recommend reviewing
   the blocker and resume condition, and offer status-only.
-- `ready`: recommend the first unblocked `[ ]` TODO item in textual order as
-  the deterministic default; offer another unblocked item or spec review.
-- `backlog`: recommend the first unchecked `[ ]` backlog task in textual order
-  as the deterministic default; offer another unchecked task or wait.
+- `ready`: recommend the first available TODO item in textual order as the
+  deterministic default; offer another available item or spec review.
+- `backlog`: recommend the first available backlog task in textual order as the
+  deterministic default; offer another available task or wait.
 - `idle`: recommend `relay-spec`; offer a read-only status report.
 - `inconsistent`: classify the conflict. If exactly one handoff TODO is
   completed and exactly one other TODO is `[•]`, recommend repairing the
@@ -32,7 +32,8 @@ Mark one option as recommended and include only relevant alternatives:
 Do not mutate files while presenting options. After the user selects an option,
 execute only that option. A stale-handoff repair may update only the handoff's
 TODO ID, objective, next step, status, `Harness`, and `Updated`; set the latter
-two to the current harness identifier and current RFC 3339 timestamp, and
-preserve the old text under a recovery note. Then delegate resumption to
-`relay-session`. Textual order never implies priority, dependency, required
-sequence, or effort. Never silently select a different task.
+two to the current harness and RFC 3339 timestamp, preserving the old text
+under a recovery note. Then delegate resumption to `relay-session`. An entry is
+available when it is `[ ]` and every ID in its `needs` is `[x]`; never offer an
+unavailable one as a default. Textual order never implies priority, dependency,
+required sequence, or effort, and never silently select a different task.

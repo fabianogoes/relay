@@ -8,8 +8,7 @@ description: Use when a repository needs Relay operational memory initialized or
 Execute this skill; do not quote it. Return only a concise result.
 
 Inspect existing `AGENTS.md`, `.specs/`, and `.orchestration/` first. Create
-missing `.specs/` and `.orchestration/` directories and these empty files,
-each ending with a newline:
+the missing directories and these empty files, each ending with a newline:
 
 - `BACKLOG.md`: `# Backlog`
 - `TODO.md`: `# Active task` followed by `No active task.`
@@ -33,7 +32,7 @@ protocol records. Handle `CLAUDE.md` explicitly:
   conflict; never overwrite user guidance.
 
 Never create a regular file containing the text `AGENTS.md`. If the symlink
-operation fails, report the failure instead of silently writing a stub.
+fails, report the failure instead of silently writing a stub.
 
 Re-read the result, report created paths, and report any inconsistency. On a
 second run, create nothing. Do not select work, write a handoff, or modify a
