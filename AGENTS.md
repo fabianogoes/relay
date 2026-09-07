@@ -1,8 +1,12 @@
 # Relay Agent Instructions
 
 Relay is a portable operational-memory protocol for coding agents. This
-repository develops the Relay package; it is not itself a Relay-managed work
-repository, so it has no `.specs/` or `.orchestration/` of its own.
+repository develops the Relay package **and is managed by Relay itself**: the
+work of building Relay is recorded in its own `.specs/` and `.orchestration/`.
+
+Friction found while working this way is a defect in `docs/PROTOCOL.md`, to be
+fixed there. It is never a reason to add a second convention beside the
+protocol this repository owns.
 
 ## How to load context
 
@@ -74,3 +78,10 @@ not only the choice.
 - The package surface is English: `README.md`, `docs/PROTOCOL.md`,
   `docs/INSTALL.md`, and the skills. ADRs and design analysis are currently
   written in Portuguese; keep each document in the language it already uses.
+
+## Relay Protocol
+
+Read `.orchestration/HANDOFF.md`, `.orchestration/TODO.md`,
+`.orchestration/BACKLOG.md`, and the spec they reference in `.specs/` before
+starting work. Clients and interfaces may read, validate, derive state, and
+launch a harness, but only Relay skills may mutate the five protocol records.
