@@ -149,6 +149,10 @@ Regras:
   operacionais em **16 px**.
 - Nunca abaixo de 12 px em texto que carrega informação.
 - `letter-spacing` negativo (`-.2px` a `-.4px`) apenas em títulos grandes.
+- **Metadados** e **Dados em linha** têm a mesma especificação numérica (mono,
+  12 px, peso 400/500) e compartilham um único conjunto de tokens de
+  tipografia no código; a tabela lista os dois papéis porque descrevem usos
+  diferentes, não porque exigem valores diferentes.
 
 ---
 
