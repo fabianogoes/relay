@@ -26,8 +26,9 @@ ninguém exercitou.
   neutro de linguagem, que é o que o `relay-core` vai produzir e a `relay-ui`
   consumir.
 - `relay-ui` em Vue renderizando a tela principal a partir de um fixture.
-- Os seis status do protocolo: `backlog`, `ready`, `in_progress`, `blocked`,
-  `done`, `idle`.
+- Os seis status do protocolo — `backlog`, `ready`, `in_progress`, `blocked`,
+  `done`, `idle` — mais o diagnóstico `inconsistent`, que tem tela própria no
+  design system e é o caso que a ADR-0001 nomeia como pior.
 - Um `tokens.css` único, derivado de `docs/design-system/README.md`.
 - Três decisões registradas em ADR: contrato, estrutura, framework.
 
@@ -67,8 +68,9 @@ tokens e layout, não o contrato. São os mesmos componentes com dado diferente.
       sem `npm install`
 - [ ] `rm -rf app/` devolve o repositório ao estado anterior, exceto o ponteiro
       no `AGENTS.md`
-- [ ] Existe um tipo do estado derivado e seis fixtures, um por status
-- [ ] A tela principal renderiza os seis fixtures sem alterar componente algum,
+- [ ] Existe um tipo do estado derivado e sete fixtures: um por status e um
+      para o diagnóstico `inconsistent`
+- [ ] A tela principal renderiza os sete fixtures sem alterar componente algum,
       apenas o dado de entrada
 - [ ] Toda cor, espaçamento e raio vêm de `var(--token)`; nenhum literal fora do
       `tokens.css`
@@ -81,7 +83,7 @@ tokens e layout, não o contrato. São os mesmos componentes com dado diferente.
 - B-001: Contrato do estado derivado registrado em ADR, com um fixture por status
 - B-002: Fronteira e estrutura do `app/` registradas em ADR e criadas em disco
 - B-003: Framework da `relay-ui` registrado em ADR
-- B-004: Tela principal renderizando os seis fixtures (needs: B-001, B-002, B-003)
+- B-004: Tela principal renderizando os sete fixtures (needs: B-001, B-002, B-003)
 
 Os três primeiros são independentes entre si e podem ser feitos em qualquer
 ordem. Só o quarto declara dependência, e ela é dado explícito, não posição.

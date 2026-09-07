@@ -40,6 +40,12 @@ not only the choice.
   loopback HTTP and WebSocket, TypeScript throughout, browser UI with the
   application shell deferred, and the rule that the application never writes a
   protocol record.
+- `docs/adr/0003-contrato-do-estado-derivado.md` — Accepted — the derived-state
+  contract between `relay-core` and `relay-ui`: content in and state out with no
+  disk access, `inconsistent` as a separate shape rather than another status,
+  availability derived in the core, counts but never percentages or positions,
+  and no presentation field, so the design system keeps authority over how state
+  looks.
 - `docs/adr/0002-carregamento-condicional-de-instrucoes.md` — Accepted — how
   agent instructions reach a session: each rule sits at the trigger where it
   becomes relevant (skill, nested `AGENTS.md`, tool hook) instead of in the root
