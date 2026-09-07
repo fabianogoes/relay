@@ -2,66 +2,71 @@
 
 Relay is a portable operational-memory protocol for coding agents. This
 repository develops the Relay package; it is not itself a Relay-managed work
-repository yet.
+repository, so it has no `.specs/` or `.orchestration/` of its own.
 
-## Session entry
+## How to load context
 
-When working in a Relay-managed repository, read these files before making a
-plan or editing code:
+This file is read in full at the start of every session. Everything it names is
+read on demand. Do not restate `docs/PROTOCOL.md`, a skill, or an ADR here: a
+summary that drifts from its source is worse than a pointer to it.
 
-1. `AGENTS.md`
-2. `.orchestration/HANDOFF.md`
-3. `.orchestration/TODO.md`
-4. `.orchestration/BACKLOG.md`
-5. The source spec named by the active record in `.specs/`
+| Read | When |
+| --- | --- |
+| `docs/PROTOCOL.md` | Before changing how any skill reads or writes a Relay record. It is the on-disk contract and holds every transition rule and integrity check in full. |
+| `skills/relay-*/SKILL.md` | Before changing one skill. Each is under 40 lines; read the one you are changing, not all five. |
+| `docs/adr/NNNN-*.md` | Before making or revisiting an architectural decision. Index below. |
+| `docs/INSTALL.md` | When changing installation for Claude Code, Codex, or OpenCode. |
+| `README.md` | When changing what Relay claims to do or how it is explained. |
+| `docs/ds/claude-ui-proposal.md` | Only for UI analysis an ADR deliberately left out, such as the UI/UX critique. |
 
-Derive the state from the files, rather than chat history:
+Never open `docs/ds/claude-design-prototype-*.html`. They are about 350 KB
+each and would consume most of a context window. What was decided from them is
+in ADR-0001; what was merely observed is in `docs/ds/claude-ui-proposal.md`.
 
-- A valid handoff means `in_progress` or `blocked`: resume it before selecting
-  different work.
-- Pending TODO items with an empty handoff mean `ready`: select one only when
-  implementation is requested, then write a valid handoff.
-- No active TODO and pending backlog mean `backlog`: suggest a task or wait
-  for a selection.
-- No pending work means `idle`.
-- Broken references or contradictory records are `inconsistent`, a diagnostic
-  rather than a work status. Explain the defect and do not advance the flow.
+## Architecture decisions
 
-## Integrity rules
+ADRs live in `docs/adr/NNNN-<slug>.md`, numbered sequentially, in the format
+Title, Status, Context, Decision, Consequences, Compliance, Notes. Status is
+`Proposed`, `Accepted`, or `Superseded`. Never delete a superseded ADR;
+supersede it and keep the chain, because the chain is the answer to "why not
+the other option?".
 
-- `HANDOFF.md` names exactly one pending TODO item, its parent backlog task,
-  and its source spec. A nonempty handoff also records the origin harness and
-  an RFC 3339 update timestamp with seconds and an explicit timezone.
-- Finish in this order: append evidence to `CHANGELOG.md`, mark the TODO item
-  `done`, then clear `HANDOFF.md`.
-- Clear `TODO.md` only after every item for its parent backlog task is done;
-  then mark that backlog task `done`.
-- Preserve specifications and backlog records after a session is complete.
+Write one when a decision affects structure, an architecture characteristic, a
+dependency, an interface, or a construction technique. Record the reasoning,
+not only the choice.
+
+- `docs/adr/0001-arquitetura-inicial-da-ui.md` — Proposed — initial UI
+  architecture: the `relay-core` / `relay-host` / `relay-ui` boundary over
+  loopback HTTP and WebSocket, TypeScript throughout, browser UI with the
+  application shell deferred, and the rule that the application never writes a
+  protocol record.
 
 ## Package boundaries
 
 - `skills/relay-*` is the canonical, shared skill source.
-- `docs/PROTOCOL.md` defines the on-disk contract. Change it before changing
-  a skill's interpretation of a Relay record.
-- `relay-setup` is idempotent and adds a delimited Relay section to an
-  existing `AGENTS.md`; it never replaces local instructions.
-- `relay-spec` can create one specification and one or more backlog tasks, then
-  presents a native choice to create another spec, implement the created spec,
-  or stop. Implementation is delegated to `relay-session`.
-- `relay-status` is read-only.
-- `relay-continue` derives the next step and presents one recommended native
-  choice without mutating state while presenting it. It may repair a stale
-  handoff only after explicit selection when the active TODO is unambiguous.
-- `relay-session` enforces the session-entry rules above.
+- `docs/PROTOCOL.md` defines the on-disk contract. Change it before changing a
+  skill's interpretation of a Relay record, never after. Per-skill
+  responsibilities live there and are not repeated here.
+- `relay-setup` is idempotent and adds a delimited Relay section to an existing
+  `AGENTS.md`; it never replaces local instructions. It generates that section
+  itself and does not copy this file.
 - Clients and interfaces may read, validate, derive state, and launch a
-  harness, but only Relay skills mutate the five protocol records.
+  harness, but only Relay skills mutate the five protocol records. If a client
+  cannot derive a state it needs, change the protocol rather than adding a
+  private write.
 
 ## Development rules
 
-- Keep Relay harness-neutral. Do not require a custom UI or rely on chat
-  memory that another harness cannot access.
+- Keep Relay harness-neutral. Do not require a custom UI or rely on chat memory
+  that another harness cannot access.
 - Keep statuses in English: `backlog`, `ready`, `in_progress`, `blocked`,
   `done`, and `idle`.
-- Do not add a Relay CLI until the Markdown protocol has been validated in
-  real repositories.
+- Do not add a Relay CLI until the Markdown protocol has been validated in real
+  repositories.
 - Keep installation guidance aligned across Claude Code, Codex, and OpenCode.
+- Keep each document in its layer: the contract in `docs/PROTOCOL.md`,
+  decisions and their reasoning in `docs/adr/`, exploratory analysis in
+  `docs/ds/`. Do not copy content between layers.
+- The package surface is English: `README.md`, `docs/PROTOCOL.md`,
+  `docs/INSTALL.md`, and the skills. ADRs and design analysis are currently
+  written in Portuguese; keep each document in the language it already uses.
