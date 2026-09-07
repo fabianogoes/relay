@@ -23,6 +23,9 @@ nunca cobriu.
   - **Changelog**: texto cru vindo de outra rota do `relay-host`.
 - Selecionar uma spec na primeira coluna filtra a segunda; a terceira
   independe da seleção.
+- Porta "+ nova spec" no cabeçalho da coluna Specs, abrindo o
+  `PreflightModal` da spec 008 com a composição de `relay-spec` — a coluna
+  continua sem escrever nada por conta própria.
 
 ## Non-goals
 
@@ -54,6 +57,12 @@ texto cru renderizado, nunca um parser novo do protocolo na UI.
   `relay-host`
 - A-005 - o seletor de fixture continua existindo, alcançável só por rota de
   desenvolvimento, para trabalho de componente sem `relay-host` rodando
+- A-006 - "+ nova spec" abre o `PreflightModal` e nada mais; a ação não
+  escreve em `.specs/` nem em `.orchestration/` a partir da UI
+- A-007 - concluída uma execução, as duas visões refletem o mesmo estado sem
+  recarregar a página: a entrada do backlog muda de disponível para em curso,
+  o changelog ganha o registro novo, e a aba Agora passa a mostrar o handoff
+  com a proveniência do harness que rodou
 
 ## Backlog candidates
 

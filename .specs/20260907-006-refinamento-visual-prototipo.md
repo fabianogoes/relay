@@ -23,6 +23,10 @@ que já está decidido lá — nenhuma decisão nova acontece aqui.
   detectados (contra fixture, não dado real ainda) e os três níveis de
   consentimento nomeados. Aberto pelo selo do Header e pelo botão "Trocar
   harness" do `HandoffCard`.
+- Tom de identidade por harness vindo dos tokens (`--purple` Codex,
+  `--orange` Claude Code), no selo do Header e na lista de harnesses.
+- Rodapé do seletor mostrando o escopo do nível de consentimento
+  **selecionado**, e não um texto fixo.
 
 ## Non-goals
 
@@ -49,6 +53,16 @@ nunca se o **PreflightModal** aparece ou se o clique de confirmação é
 dispensado. O modal e o clique final são obrigatórios sempre, nas três
 opções de consentimento, sem exceção.
 
+**Dois achados da navegação do protótipo v2 entram como requisito.** Primeiro,
+o rodapé do seletor lá é fixo — diz "gravado local" mesmo com "Só esta
+execução · não grava" marcado, prometendo o contrário do que foi escolhido;
+como o rodapé é a única confirmação textual do que será lembrado, ele tem de
+acompanhar a seleção. Segundo, o protótipo pinta o Codex com `--blue` (o tom
+que a seção 3 do design system reserva para `ready`/`backlog`/seleção) e o
+Claude Code com `#e0865f`, fora de token; a decisão do `README.md` vence, e é
+dela que a implementação sai. Nenhuma decisão nova: as duas estão registradas
+no `README.md` (seções 2 e 6).
+
 **Consentimento é estado do navegador, não do protocolo.** Os três níveis
 mapeiam para: "não grava" → estado do componente, perdido ao fechar o modal;
 "sessão" → uma store em memória, viva enquanto a aba está aberta; "gravado
@@ -71,6 +85,12 @@ navegador guarda a própria preferência, o `relay-host` nunca sabe disso.
   seletor de consentimento isolados
 - A-005 - "gravado local" persiste em `localStorage`; nenhuma escrita nova
   em arquivo aparece em `app/relay-host` ou em qualquer lugar do disco
+- A-006 - o rodapé do seletor nomeia o escopo do nível selecionado e muda
+  junto com ele; com "Só esta execução" marcado, nenhum texto da tela promete
+  gravação
+- A-007 - o tom de identidade de cada harness vem de `--purple` e `--orange`;
+  nenhum componente pinta harness com `--blue`, `--green` ou `--amber`, e o
+  harness desabilitado não recebe tom de identidade
 
 ## Backlog candidates
 

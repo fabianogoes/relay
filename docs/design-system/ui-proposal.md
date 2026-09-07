@@ -212,6 +212,22 @@ HarnessAdapter
 `buildArgv` e `composePrompt` são coisas separadas. Juntá-las é justamente o
 que produz a suposição de que existe um `--skill`.
 
+**Corrigido no v2, e vale registrar como o alvo já existe desenhado.** A
+navegação do `claude-design-prototype-v2.html` não mostra `--skill` em lugar
+nenhum: o PreflightModal exibe quatro linhas rotuladas e as duas primeiras
+mudam com o harness, enquanto a terceira recebe um prefixo próprio de cada um.
+Medido, para a mesma intenção ("Selecionar B-002 e explodir em subtarefas"):
+
+| | `bin` | `arg` | `prompt` |
+| --- | --- | --- | --- |
+| Claude Code | `claude` | `-p` | `/relay-session Selecionar B-002 e…` |
+| Codex | `codex` | `exec` | `⟨relay-session⟩ Selecionar B-002 e…` |
+
+O texto da intenção é idêntico nos dois; só o prefixo da skill e o `argv`
+mudam. É exatamente a separação `buildArgv` / `composePrompt` descrita acima,
+já visível na superfície — o que resta é implementá-la no adaptador em vez de
+descrevê-la.
+
 ## 1.6 Os dois canais: como a UI lança o harness e recebe feedback
 
 Este é o ponto que decide o produto, e ele começa por separar duas coisas que é
@@ -446,6 +462,49 @@ Não é texto decorativo.
 
 Estado nunca deve ser comunicado só por cor: cada marcador de status precisa de
 rótulo textual além do tom.
+
+---
+
+## 2.7 Navegação do v2: o que foi exercitado e o que apareceu
+
+Registro do que a navegação completa do `claude-design-prototype-v2.html`
+exercitou de fato. É observação, não decisão: o que virou decisão está no
+`README.md`, o que virou critério está nas specs 006 a 010.
+
+**Carga.** Página autocontida, sem nenhuma requisição de rede;
+`first-contentful-paint` em 136 ms, `load` em 196 ms, nenhuma mensagem de
+console — nem erro, nem aviso. Os ~350 KB do arquivo não custam nada
+perceptível.
+
+**Superfícies percorridas.** Aba **Agora** com handoff ativo (proveniência,
+duas colunas, checklist com rótulo por marcador, contador "1 de 4"); aba
+**Trabalho** com as três colunas e a troca de spec refiltrando o backlog; o
+PreflightModal pelas quatro portas de lançamento; o seletor de harness
+standalone pelo selo do Header; o modo de execução com terminal e prova de
+escrita ao vivo; desanexar, faixa de segundo plano, reanexar, encerrar e
+fechar; e a tela **Escolher** com uma ação por tarefa e o cartão de entrevista.
+
+**Coerência entre visões, verificada.** Depois de uma execução completa, a
+tarefa passou de `DISPONÍVEL` a `EM CURSO` na aba Trabalho, o changelog ganhou
+um registro, e a aba Agora passou a mostrar o handoff com a proveniência do
+harness que rodou. As duas visões leem o mesmo estado, sem divergir.
+
+**Três defeitos observados**, todos já convertidos em critério de aceite:
+
+1. O rodapé do PreflightModal diz `escopo por workspace · gravado local` de
+   forma fixa, sem acompanhar o nível de consentimento selecionado — com "Só
+   esta execução · não grava" marcado, o rodapé continua prometendo gravação.
+2. Ao terminar, a barra do modo de execução passa a `concluído` enquanto a
+   última linha do terminal ainda diz "T-002 em execução — aguardando o
+   harness". Dois estados contraditórios na mesma tela.
+3. "Encerrar processo" descarta a execução sem confirmação, mesmo com o painel
+   ao lado listando arquivos já gravados. A UI volta ao estado anterior ao
+   lançamento sem qualquer vestígio do que foi escrito.
+
+**Tons de identidade divergem do `README.md`.** Medido: Codex usa `#93baff`
+(o `--blue` do mapeamento de status) e Claude Code usa `#e0865f`, valor fora
+de token — `--orange` não está declarado no protótipo, e `--purple`, que está,
+não é usado por harness nenhum. A decisão vigente é a do `README.md`, seção 2.
 
 ---
 

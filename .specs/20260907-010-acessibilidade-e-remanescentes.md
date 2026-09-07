@@ -11,7 +11,9 @@ já estar consumindo dado real e a segunda visão existir.
 
 - Auditar todo componente existente (`StatusPill`, `HandoffCard`,
   `ChecklistList`, `RepairScreen`, `Header`, `EmptyState`, `MainScreen`, o
-  seletor de harness e consentimento, as três colunas da segunda visão)
+  seletor de harness e consentimento, as três colunas da segunda visão, o
+  `PreflightModal`, a barra e os controles do modo de execução, e a faixa de
+  execução em segundo plano)
   contra as cinco regras da seção 7: contraste AA, foco visível, alvos de
   32-36px, nunca só cor para status, hierarquia por tamanho e peso.
 - Construir o painel "Gravado em disco": diff arquivo por arquivo do que
@@ -40,9 +42,18 @@ passada só.
   falha) contra cada uma das cinco regras da seção 7, com falhas corrigidas
   ou registradas como nova entrada de backlog
 - A-002 - o painel "Gravado em disco" renderiza um diff real dos arquivos de
-  `.orchestration/` ao redor de um handoff concluído
+  `.orchestration/`, uma entrada por escrita e mais recente primeiro, cada
+  uma com selo de tipo (`ATUALIZADO` / `LIMPO`), caminho, horário, a linha de
+  prosa do significado e as colunas Antes e Depois; a entrada `LIMPO` de um
+  handoff esvaziado aparece como qualquer outra
 - A-003 - o componente de botão suporta as variantes primária, secundária e
-  perigo
+  perigo, com a variante perigo usada por "Encerrar processo" e por nenhuma
+  ação não destrutiva
+- A-004 - o contador do painel e o da faixa de segundo plano mostram contagem
+  verdadeira de arquivos, nunca percentual ou posição
+- A-005 - todo controle das telas novas alcança foco visível pelo teclado, e
+  a ordem de foco do `PreflightModal` fica contida no modal enquanto ele está
+  aberto
 
 ## Backlog candidates
 

@@ -69,7 +69,9 @@ conflitar com um princípio, o princípio vence.
 
 ## 2. Tokens de cor
 
-Tema escuro. Os valores abaixo são os adotados no protótipo v2 e aqui fixados.
+Tema escuro. Os valores abaixo são os adotados no protótipo v2 e aqui fixados,
+com uma exceção registrada logo após a tabela de acentos: os tons de identidade
+de harness, em que este documento diverge do protótipo de propósito.
 
 | Token | Valor | Uso |
 | --- | --- | --- |
@@ -94,6 +96,16 @@ Acentos semânticos — cada um com três variantes (tinta, fundo suave, linha):
 | `--purple` / `--purple-soft` / `--purple-line` | `#cfaaff` / `rgba(207,170,255,.10)` / `rgba(207,170,255,.32)` | identidade de harness: Codex |
 | `--orange` / `--orange-soft` / `--orange-line` | `#f5a878` / `rgba(245,168,120,.10)` / `rgba(245,168,120,.34)` | identidade de harness: Claude Code |
 | `--on-green` | `#05231a` | texto sobre fundo `--green` sólido |
+
+> **Divergência conhecida do protótipo v2, medida na navegação.** Lá o selo do
+> Codex usa `#93baff` — o próprio `--blue`, que a seção 3 reserva para
+> `ready`/`backlog`/seleção — e o do Claude Code usa `#e0865f`, valor que não
+> existe como token; `--orange` sequer está declarado no protótipo. A decisão
+> da seção 6 ("Lista de harnesses") vale contra isso, e a implementação segue
+> este documento. A justificativa de que o roxo "acompanha o protótipo" era
+> falsa quanto ao fato; a decisão continua de pé pelo argumento que importa —
+> `--blue` já carrega significado de status e não pode carregar identidade
+> também, que é exatamente a colisão que o protótipo produz.
 
 ### Contraste
 
@@ -196,6 +208,22 @@ mais recentes primeiro, com a evidência em rodapé mono). Selecionar uma spec
 na primeira coluna filtra a segunda; a terceira não depende da seleção. O
 handoff permanece o objeto central só da tela principal (aba **Agora**).
 
+A tela **Escolher** não é um aviso de vazio. Ela lista as tarefas de backlog
+disponíveis, uma por linha, cada uma com o próprio ID, o caminho da spec em
+mono e a própria ação primária nomeando o harness ("▶ Começar no {harness}"),
+e fecha com um cartão para especificar uma ideia nova ("Iniciar entrevista").
+O texto diz **por que** a escolha é do usuário — as tarefas do backlog são
+independentes entre si, e `needs` é a única dependência real — em vez de
+apenas constatar que o handoff está vazio. Não há ação primária única nesta
+tela: há uma por linha, porque escolher é o trabalho.
+
+Enquanto uma execução está anexada, a UI entra em **modo de execução** e ocupa
+a viewport inteira: as abas Agora/Trabalho desaparecem e não há navegação
+lateral. O modo tem dois estados, `em execução` e `concluído`, e é o único
+lugar do app onde existe ação de perigo. Sair dele é sempre explícito —
+desanexar para segundo plano, ou fechar depois de concluído — nunca por
+navegação.
+
 ### Controles
 
 - Altura de controles interativos: **32 a 36 px**.
@@ -245,6 +273,29 @@ Esc") e **um** botão primário que nomeia o harness selecionado
 ("▶ Executar no {harness}"). O botão de confirmar é a única rota de
 lançamento. Em `--no-exec`, o modal não existe.
 
+O mesmo modal serve às **quatro portas de lançamento**, mudando só o título e
+o `prompt` pré-preenchido: "Especificar uma ideia" (botão "+ nova spec" da
+coluna Specs e cartão "Iniciar entrevista" da tela Escolher), "Iniciar sessão
+em {backlogId}" (ação "Começar" de uma tarefa disponível) e "Retomar sessão"
+(ação "Retomar" do HandoffCard ou de uma tarefa em curso). Não existe rota de
+lançamento que não passe por aqui.
+
+As linhas `bin` e `arg` mudam com o harness selecionado, e a linha `prompt`
+muda junto: a invocação da skill é **composta para aquele harness** —
+`/relay-session` como comando de barra no Claude Code (`claude` `-p`),
+`⟨relay-session⟩` como delimitador no Codex (`codex` `exec`) — e nunca uma
+flag `--skill`, que não existe em nenhum dos CLIs (`ui-proposal.md`, seção
+1.5). O texto da intenção depois do prefixo é o mesmo nos dois; só o prefixo e
+o `argv` mudam. Trocar o harness reescreve as quatro linhas e o rótulo do
+botão de confirmar na mesma ação.
+
+O rodapé mostra o escopo de consentimento **vigente**, acompanhando a opção
+selecionada. Um rodapé fixo dizendo "gravado local" enquanto "Só esta
+execução" está marcado é defeito, não estilo: o rodapé é a única confirmação
+textual do que será lembrado. O modal fecha por `Esc` e pelo botão "Cancelar";
+o seletor standalone, aberto pelo selo do Header, fecha por clique fora.
+Fechar nunca lança.
+
 ### Seletor de harness e consentimento
 Componente compartilhado, usado standalone (atalho "Trocar harness" no
 HandoffCard e no Header) e inline no PreflightModal. Lista os harnesses
@@ -257,9 +308,23 @@ local ao workspace, mas não é autorização (ADR-0001 ponto 6): o preflight
 continua obrigatório em toda execução, mesmo com consentimento "sempre".
 
 ### Painel "Gravado em disco"
-Fechamento de toda execução: lista o que mudou, arquivo por arquivo, com o
-antes e o depois do handoff. Expressa a regra read-only como qualidade visível:
-"o app não escreveu nada disto; a skill escreveu."
+A prova de escrita, **ao vivo durante a execução** e não só no fechamento:
+ocupa a coluna direita do modo de execução e recebe uma entrada assim que a
+skill grava. Expressa a regra read-only como qualidade visível: "o app não
+escreveu nada disto; a skill escreveu."
+
+Cabeçalho com o contador verdadeiro de arquivos tocados ("N arquivos
+alterados"), nunca percentual. Uma entrada por escrita, **mais recente
+primeiro**, cada uma com: um selo de tipo — `ATUALIZADO` quando o registro
+passou a ter conteúdo novo, `LIMPO` quando voltou ao estado vazio —, o caminho
+do registro em mono, o horário, uma linha de prosa dizendo o que aquela
+escrita significa, e as colunas **Antes** e **Depois** lado a lado com o
+trecho cru.
+
+A entrada `LIMPO` nunca é omitida por ser "só" um esvaziamento: mostra o
+conteúdo anterior à esquerda e o registro vazio à direita, e é exatamente ali
+que a invariante do handoff — limpo só depois do changelog — fica visível sem
+que ninguém precise explicá-la.
 
 ### Lista de subtarefas (checklist)
 Cada item combina **marcador + rótulo textual** à direita — `[x]` → "Feito",
@@ -278,6 +343,37 @@ mostra o contador verdadeiro ("N de M concluídas"), nunca percentual.
 - Na primeira execução, avisar do conflito de teclado (`Cmd+W`, `Cmd+T`) e
   oferecer o modo externo.
 
+O terminal nunca aparece sozinho. No modo de execução ele ocupa a coluna
+esquerda e o painel "Gravado em disco" ocupa a direita — o Canal A e o Canal B
+lado a lado, que é o argumento visual da regra "o estado vem do disco, nunca
+do stdout". Acima das duas colunas, uma barra identifica a execução: selo do
+harness com o tom de identidade, nome da execução, e o estado da execução em
+StatusPill. Ao reanexar, a barra ganha o selo `RECONECTADO À EXECUÇÃO VIVA`,
+para que reanexar nunca seja lido como execução nova. O rodapé do terminal
+mostra `pid {n} · sessão viva` enquanto o processo vive.
+
+Controles da barra, por estado da execução:
+
+| Estado | Controles |
+| --- | --- |
+| `em execução` | "Deixar em segundo plano" (secundário) · "Encerrar processo" (perigo) |
+| `concluído` | "Fechar" (secundário) |
+
+"Deixar em segundo plano" desanexa e devolve a navegação. **"Encerrar
+processo" exige confirmação** — é a única ação de perigo do app e descarta uma
+execução que já gravou no disco, com o painel ao lado provando que gravou.
+"Fechar" nunca aparece antes de o processo terminar: o rótulo do controle é a
+única fonte de verdade sobre o que o clique faz, e o estado na barra nunca
+pode dizer `concluído` enquanto a última linha do terminal ainda descreve
+trabalho em curso.
+
+### Faixa de execução em segundo plano
+Aparece abaixo do Header quando existe execução desanexada, e só então. Ponto
+de status, o texto "Rodando em segundo plano", o nome da execução e o harness,
+o contador verdadeiro de arquivos já escritos, e um único controle secundário
+à direita: "Reconectar ao terminal". A faixa é a prova de que desanexar não é
+encerrar — sem ela, "Deixar em segundo plano" seria indistinguível de fechar.
+
 ### Lista de harnesses
 Um item por harness detectado: nome, versão, estado (instalado / não
 autenticado / ausente). "Instalado mas não autenticado" é um estado distinto
@@ -291,6 +387,12 @@ OpenCode "não instalado" não recebe tom de identidade — usa `--meta` sobre
 que apareça no futuro entra sem tom próprio (neutro) até o design system
 decidir um.
 
+O protótipo v2 **não** implementa esta decisão (ver a divergência na seção 2):
+pinta o Codex com `--blue` e o Claude Code com um valor solto, fora de token.
+O estado desabilitado do OpenCode aparece lá como `#48525f`, vizinho dos
+cinzas proibidos da seção 2 — ali é só o preenchimento de um quadrado, mas
+nenhum texto informativo pode herdar esse valor.
+
 ### Header
 Logotipo "Relay" com nome do workspace e caminho completo, abas **Agora** /
 **Trabalho** para alternar tela principal e segunda visão, um selo compacto do
@@ -300,7 +402,10 @@ derivado em StatusPill à direita. Não carrega ação primária.
 
 ### Empty states
 Texto claro quando não há handoff, backlog ou especificação — nunca um painel
-vazio sem explicação.
+vazio sem explicação. Handoff vazio **com** trabalho disponível não é empty
+state: é a tela **Escolher** da seção 5, que explica por que a escolha é do
+usuário e dá a cada tarefa a própria ação primária. Empty state de verdade é
+só quando não há nem trabalho a escolher.
 
 ---
 
