@@ -12,7 +12,6 @@ Read `AGENTS.md`, handoff, TODO, backlog, and referenced specs. If references
 disagree, or a nonempty handoff has missing or malformed provenance, report
 `inconsistent` and stop, pointing to `relay-continue` for a deterministic
 stale-handoff recovery when applicable. Otherwise:
-
 - valid handoff: resume it (`in_progress` or `blocked`);
 - empty handoff with an available TODO item: report `ready`, honor an
   explicitly selected available item, or use the first available item in
@@ -30,8 +29,9 @@ sets `Harness` to the current harness as a stable lowercase identifier matching
 together; do not infer them from filesystem metadata.
 
 When a subtask finishes, append its changelog record with `Criteria` naming the
-acceptance criteria it advanced, or `none` when truthful, mark its TODO item
-`[x]`, clear handoff, and clear TODO only after all its items finish. Before
+criteria it advanced — qualified as `YYYYMMDD-NNN/A-NNN` when they belong to
+another spec — or `none` when truthful, mark its TODO item `[x]`, clear handoff,
+and clear TODO only after all its items finish. Before
 marking the last pending backlog entry of a spec `done`, confirm every criterion
 of that spec is named by some changelog record; when one is not, leave the entry
 pending with `[!]` and a blocked handoff naming what is missing. Set `[!]` and a

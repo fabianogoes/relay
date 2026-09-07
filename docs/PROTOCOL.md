@@ -88,6 +88,13 @@ The marker is omitted deliberately. A `[ ]` on a criterion reads as pending work
 that will be completed, while nothing in the protocol ever completes it — the
 specification stays unchanged while the work happens around it.
 
+`A-NNN` is unique only within one specification, so `Criteria` resolves it by
+context: an unqualified ID belongs to the specification in the record's `Spec`.
+A criterion of a different specification is qualified with that specification's
+`YYYYMMDD-NNN` prefix, as in `20260905-001/A-003`. Work done under one
+specification may satisfy a criterion of another, and qualification is what
+makes that recordable instead of ambiguous.
+
 Existing specifications whose criteria use checklist markers remain valid and
 must not be rewritten solely to adopt this convention.
 
@@ -205,7 +212,7 @@ No active handoff.
 - Spec: .specs/20260905-001-<slug>.md
 - Result: <What changed.>
 - Evidence: <Test, inspection, commit, or other verifiable result.>
-- Criteria: <Acceptance criterion IDs this subtask advanced, or none.>
+- Criteria: <Criterion IDs advanced, qualified when from another spec, or none.>
 - Decisions: <Decision retained for future sessions, or none.>
 ```
 

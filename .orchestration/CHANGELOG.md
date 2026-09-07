@@ -201,3 +201,29 @@
   existem na ADR-0003 como dois JSON completos mais uma tabela descrevendo os
   outros cinco; como arquivos, nao existem. Era tentador contar como pronto, e
   a regra nova e justamente o que obrigou o exame.
+
+## 2026-09-07 - T-001 - Qualificacao de criterio entre specs
+- Backlog: B-008
+- Spec: .specs/20260907-002-evidencia-nomeia-criterio.md
+- Result: docs/PROTOCOL.md agora resolve `A-NNN` por contexto — ID sem prefixo
+  pertence a spec do proprio `Spec:` do registro; criterio de outra spec usa
+  `YYYYMMDD-NNN/A-NNN`. relay-session atualizado.
+- Evidence: secao Acceptance criteria do protocolo tem a regra; skill cita o
+  formato qualificado. Todas as cinco skills abaixo de 40 linhas.
+- Criteria: A-009
+- Decisions: nenhuma.
+
+## 2026-09-07 - T-002 - Registros de B-007 corrigidos por acrescimo
+- Backlog: B-008
+- Spec: .specs/20260907-002-evidencia-nomeia-criterio.md
+- Result: os dois registros de B-007 diziam `Criteria: A-008` sob
+  `Spec: ...002` referindo-se na verdade a criterios da spec 001. Correcao:
+  aqueles IDs devem ser lidos como `20260907-001/A-008` — CHANGELOG e
+  append-only, entao a leitura correta fica registrada aqui, nao editada la.
+- Evidence: com a qualificacao, a spec 001 (4 entradas, B-004 pendente) segue
+  sem gatilhar `criteria-without-evidence`; a spec 002 (todas [x]) tem A-001 a
+  A-009 todos nomeados, a maioria sem qualificador porque pertencem a ela mesma.
+- Criteria: 20260907-001/A-008
+- Decisions: defeito nasceu de eu mesmo escrever `Criteria: A-008` sem
+  qualificar enquanto documentava trabalho de outra spec — o proprio uso da
+  regra nova expos o buraco nela.

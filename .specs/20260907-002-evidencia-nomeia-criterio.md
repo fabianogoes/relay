@@ -81,6 +81,8 @@ que já vale para nomes de arquivo de spec.
 - A-007 - Specs com critérios em checkbox continuam válidas
 - A-008 - A spec `20260907-001` foi convertida e seus critérios têm evidência
   atribuída retroativamente ou registrados como pendentes
+- A-009 - Um critério nomeado no changelog identifica sem ambiguidade a spec a
+  que pertence, mesmo quando a subtarefa corre sob outra spec
 
 ## Backlog candidates
 
@@ -88,3 +90,4 @@ que já vale para nomes de arquivo de spec.
 - B-006: Skills alinhadas ao novo contrato (needs: B-005)
 - B-007: Spec `20260907-001` convertida e seus critérios reconciliados
   (needs: B-005)
+- B-008: Critério nomeado no changelog é qualificado pela spec (needs: B-005)

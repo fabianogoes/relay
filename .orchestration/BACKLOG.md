@@ -7,3 +7,4 @@
 - [x] B-005 - Protocolo exige que a evidencia nomeie o criterio de aceite (spec: `.specs/20260907-002-evidencia-nomeia-criterio.md`)
 - [x] B-006 - Skills alinhadas ao novo contrato (spec: `.specs/20260907-002-evidencia-nomeia-criterio.md`) (needs: B-005)
 - [x] B-007 - Spec 20260907-001 convertida e seus criterios reconciliados (spec: `.specs/20260907-002-evidencia-nomeia-criterio.md`) (needs: B-005)
+- [x] B-008 - Criterio nomeado no changelog e qualificado pela spec a que pertence (spec: `.specs/20260907-002-evidencia-nomeia-criterio.md`) (needs: B-005)
