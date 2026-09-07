@@ -187,8 +187,13 @@ A tela **Reparar** é dura: quando o protocolo determina que ninguém avança co
 estado inconsistente, a interface **desabilita** o resto — não apenas pinta um
 aviso. Restrição por construção vale mais que restrição por texto.
 
-A segunda visão (specs, backlog, changelog) é acessada por navegação, fora da
-tela principal; o handoff permanece o objeto central da tela principal.
+A segunda visão (aba **Trabalho**, ao lado de **Agora**) é um painel de três
+colunas simultâneas, não uma sequência de telas: **Specs** (lista, com
+contagem de tarefas), **Backlog da spec selecionada** (filtrado pelo `spec`
+da entrada, com ação `Retomar`/`Começar` por linha), **Changelog** (registros
+mais recentes primeiro, com a evidência em rodapé mono). Selecionar uma spec
+na primeira coluna filtra a segunda; a terceira não depende da seleção. O
+handoff permanece o objeto central só da tela principal (aba **Agora**).
 
 ### Controles
 
@@ -206,10 +211,18 @@ Tom + rótulo textual (nunca só cor). Fundo `-soft`, borda `-line`, tinta do to
 Ponto de status quando o espaço for mínimo, sempre acompanhado do rótulo.
 
 ### HandoffCard
-O maior elemento da tela principal. Cabeçalho com **proveniência** —
-"escrito no {harness} · {tempo relativo}" —, objetivo e próximo passo em corpo
-legível, e **um** botão primário. O card nunca mostra fila, posição ou
-percentual; mostra o contador verdadeiro (`2 de 4`) quando houver subtarefas.
+O maior elemento da tela principal. Cabeçalho com **proveniência** — avatar
+com as iniciais do harness, "escrito no {harness} · {tempo relativo}" — e o
+timestamp absoluto (`YYYY-MM-DD HH:MM`) junto do IDs (`B-002 / T-002`) numa
+linha mono logo abaixo. Título do objetivo em destaque
+(`OBJETIVO · {backlogId} / {todoId}` como rótulo pequeno acima). Corpo em
+**duas colunas lado a lado** — "Próximo passo" e "Contexto deixado" — nunca
+um parágrafo único misturando os dois. Rodapé: **um** botão primário
+("▶ Retomar {todoId} no {harness}", nomeando o harness), um botão secundário
+("Trocar harness") e o caminho da spec em mono, alinhado à direita. O card
+nunca mostra fila, posição ou percentual; mostra o contador verdadeiro
+(`2 de 4`) quando houver subtarefas, num rótulo acima da lista de subtarefas
+associada, não dentro do card.
 
 ### Botão primário
 Uma ação primária por tela. Tom sólido (`--green` ou o tom da ação), texto
@@ -219,14 +232,41 @@ equivalente do tom.
 
 ### PreflightModal
 Mostra o `argv` **elemento por elemento**, cada um em célula separada (mono),
-nunca concatenado com aspas. Inclui: harness detectado (instalado, versão,
-autenticado), workspace, e o aviso de execução. O botão de confirmar é a única
-rota de lançamento. Em `--no-exec`, o modal não existe.
+nunca concatenado com aspas — na prática, uma tabela rotulada de linhas
+`bin` / `arg` / `prompt` / `cwd`, cada uma um elemento real do processo a
+lançar, nunca uma string montada. O campo `prompt` é editável antes de
+confirmar; a edição altera o elemento do `argv`, nunca gera concatenação de
+shell. Inclui inline o **seletor de harness e consentimento** (ver
+componente abaixo) e o aviso de execução ("Ao executar, esta janela fecha e
+o harness assume..."). Rodapé: o escopo de consentimento vigente em texto
+("escopo por workspace · gravado local"), um botão secundário ("Cancelar
+Esc") e **um** botão primário que nomeia o harness selecionado
+("▶ Executar no {harness}"). O botão de confirmar é a única rota de
+lançamento. Em `--no-exec`, o modal não existe.
+
+### Seletor de harness e consentimento
+Componente compartilhado, usado standalone (atalho "Trocar harness" no
+HandoffCard e no Header) e inline no PreflightModal. Lista os harnesses
+detectados — nome, versão, estado — e um seletor de **consentimento para
+executar sem perguntar de novo**, com três níveis nomeados: "Só esta
+execução" (não grava), "Enquanto a app estiver aberta" (grava na sessão),
+"Sempre neste workspace" (grava local, por workspace). Consentimento nunca é
+selecionado por padrão silenciosamente — a preferência de harness pode ser
+local ao workspace, mas não é autorização (ADR-0001 ponto 6): o preflight
+continua obrigatório em toda execução, mesmo com consentimento "sempre".
 
 ### Painel "Gravado em disco"
 Fechamento de toda execução: lista o que mudou, arquivo por arquivo, com o
 antes e o depois do handoff. Expressa a regra read-only como qualidade visível:
 "o app não escreveu nada disto; a skill escreveu."
+
+### Lista de subtarefas (checklist)
+Cada item combina **marcador + rótulo textual** à direita — `[x]` → "Feito",
+`[•]` → "Em execução", `[!]` → "Bloqueado", `[ ]` → "Pendente" — nunca só o
+glifo do marcador (mesma regra do StatusPill: tom + texto, nunca só cor). O
+item `[•]` ativo tem fundo destacado (`--panel-2` ou tom sutil do status),
+distinguindo-o visualmente sem depender só do rótulo. O cabeçalho da lista
+mostra o contador verdadeiro ("N de M concluídas"), nunca percentual.
 
 ### Terminal
 - **Embutido**: `xterm.js` sobre PTY via WebSocket; alt-screen, mouse tracking e
@@ -239,12 +279,24 @@ antes e o depois do handoff. Expressa a regra read-only como qualidade visível:
 
 ### Lista de harnesses
 Um item por harness detectado: nome, versão, estado (instalado / não
-autenticado / ausente), com o tom do harness (`--purple`). "Instalado mas não
-autenticado" é um estado distinto de "não instalado".
+autenticado / ausente). "Instalado mas não autenticado" é um estado distinto
+de "não instalado".
+
+**Proposto, não decidido:** um ícone com tom distinto por harness (visto no
+protótipo: laranja para Claude Code, roxo/lavanda para Codex, cinza-neutro
+para não instalado). Isso substituiria o tom único `--purple` que este
+documento especificava antes. Valores de cor exatos não foram confirmados —
+só a existência de tons distintos por identidade. Decisão pendente antes de
+qualquer código usar cor por harness: usar `--purple` para Codex (já
+compatível com a redação anterior) e decidir os tokens que faltam (Claude
+Code, OpenCode) antes de implementar.
 
 ### Header
-Logotipo "Relay", workspace corrente, harness deste workspace, e o estado
-derivado em StatusPill. Não carrega ação primária.
+Logotipo "Relay" com nome do workspace e caminho completo, abas **Agora** /
+**Trabalho** para alternar tela principal e segunda visão, um selo compacto do
+harness ativo — iniciais coloridas, nome, "sessão"/escopo do consentimento —
+que abre o **seletor de harness e consentimento** ao clicar, e o estado
+derivado em StatusPill à direita. Não carrega ação primária.
 
 ### Empty states
 Texto claro quando não há handoff, backlog ou especificação — nunca um painel
