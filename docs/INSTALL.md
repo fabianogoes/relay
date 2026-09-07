@@ -10,6 +10,12 @@ The public repository is `https://github.com/fabianogoes/relay`.
 For local development, replace `/absolute/path/to/relay` below with this
 checkout's absolute path.
 
+Every install below links one symlink per skill rather than symlinking the
+`skills/` directory itself. Relay then sits alongside whatever skills the
+project already has, and the command still works when `.claude/skills/`,
+`.agents/skills/`, or `.opencode/skills/` already exists — symlinking onto an
+existing directory would nest the link inside it instead of replacing it.
+
 ## Claude Code
 
 Claude Code plugins discover skills under the plugin's `skills/` directory.
@@ -31,8 +37,10 @@ entry:
 Alternatively, expose the shared skills directly in a target project:
 
 ```sh
-mkdir -p .claude
-ln -s /absolute/path/to/relay/skills .claude/skills
+mkdir -p .claude/skills
+for skill in relay-setup relay-spec relay-status relay-continue relay-session; do
+  ln -s /absolute/path/to/relay/skills/"$skill" .claude/skills/"$skill"
+done
 ```
 
 The package metadata is `.claude-plugin/plugin.json`. Once Relay has a public
@@ -46,8 +54,10 @@ canonical `./skills/` directory. Install the local checkout through the Codex
 plugin development flow, or link the skills for repository-scoped development:
 
 ```sh
-mkdir -p .agents
-ln -s /absolute/path/to/relay/skills .agents/skills
+mkdir -p .agents/skills
+for skill in relay-setup relay-spec relay-status relay-continue relay-session; do
+  ln -s /absolute/path/to/relay/skills/"$skill" .agents/skills/"$skill"
+done
 ```
 
 In Codex, open Plugins, choose the GitHub-imported `relay` marketplace, review
@@ -62,11 +72,9 @@ Relay from GitHub globally for your user:
 ```sh
 git clone https://github.com/fabianogoes/relay.git ~/.config/opencode/relay
 mkdir -p ~/.config/opencode/skills
-ln -s ~/.config/opencode/relay/skills/relay-setup ~/.config/opencode/skills/relay-setup
-ln -s ~/.config/opencode/relay/skills/relay-spec ~/.config/opencode/skills/relay-spec
-ln -s ~/.config/opencode/relay/skills/relay-status ~/.config/opencode/skills/relay-status
-ln -s ~/.config/opencode/relay/skills/relay-continue ~/.config/opencode/skills/relay-continue
-ln -s ~/.config/opencode/relay/skills/relay-session ~/.config/opencode/skills/relay-session
+for skill in relay-setup relay-spec relay-status relay-continue relay-session; do
+  ln -s ~/.config/opencode/relay/skills/"$skill" ~/.config/opencode/skills/"$skill"
+done
 ```
 
 Open a new OpenCode session and execute this test prompt:
@@ -88,13 +96,19 @@ the matching skill with its native `skill` tool.
 For project-local installation instead:
 
 ```sh
-mkdir -p .opencode
-ln -s /absolute/path/to/relay/skills .opencode/skills
+mkdir -p .opencode/skills
+for skill in relay-setup relay-spec relay-status relay-continue relay-session; do
+  ln -s /absolute/path/to/relay/skills/"$skill" .opencode/skills/"$skill"
+done
 ```
 
 See [.opencode/INSTALL.md](../.opencode/INSTALL.md) for the adapter notes. The
 OpenCode installation remains a native Agent Skills discovery link; no custom
 runtime is installed.
+
+This repository's own `.opencode/plugin/` directory is not part of that
+installation. It holds a development guard for contributors working on Relay
+itself, and it is not distributed: the Codex manifest ships `./skills/` only.
 
 ## Updating
 
