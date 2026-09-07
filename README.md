@@ -51,11 +51,14 @@ CLAUDE.md -> AGENTS.md
 - `.specs/` contem contexto, escopo, decisoes, plano e criterios de aceite.
   E a fonte do "como fazer".
 - `BACKLOG.md` contem uma checklist compacta de tarefas implementaveis
-  derivadas de specs. Uma spec pode gerar N tarefas de backlog.
+  derivadas de specs. Uma spec pode gerar N tarefas de backlog. A ordem textual
+  define somente uma recomendacao padrao deterministica, nunca prioridade,
+  fila ou dependencia; qualquer entrada pendente pode ser escolhida.
 - `TODO.md` contem uma checklist compacta das subtarefas da tarefa de backlog
-  escolhida para a sessao.
+  escolhida para a sessao. A ordem nao implica dependencia, sequencia ou
+  estimativa; qualquer subtarefa pendente e desbloqueada pode ser escolhida.
 - `HANDOFF.md` contem uma unica subtarefa: o que esta sendo feito agora ou o
-  que deve ser retomado agora.
+  que deve ser retomado agora, qual harness escreveu esse estado e quando.
 - `CHANGELOG.md` e o team log append-only das subtarefas concluidas, incluindo
   resultado, evidencia e decisoes relevantes.
 
@@ -124,8 +127,9 @@ inconsistencia.
 Todo harness deve descobrir o estado antes de agir:
 
 1. Se existe um handoff valido, retoma a subtarefa e consulta sua spec.
-2. Se o handoff esta vazio e o TODO tem pendencias, seleciona a proxima
-   subtarefa e a escreve no handoff.
+2. Se o handoff esta vazio e o TODO tem pendencias, respeita uma escolha
+   explicita ou usa a primeira subtarefa desbloqueada na ordem textual somente
+   como default deterministico, e entao a escreve no handoff.
 3. Se TODO e handoff estao vazios e ha backlog, sugere uma tarefa ou espera uma
    instrucao.
 4. Se houver inconsistencia, explica o problema e pede orientacao antes de
@@ -147,12 +151,14 @@ com cinco skills complementares:
   escolha nativa com recomendacao, sem alterar arquivos antes da selecao; pode
   propor a recuperacao de um handoff obsoleto quando a correcao for deterministica.
 - `relay-session`: comeca pela leitura do estado e entao retoma,
-  seleciona a proxima subtarefa, sugere backlog ou aguarda.
+  seleciona a subtarefa escolhida ou o default deterministico, sugere backlog
+  ou aguarda.
 
 A entrevista de especificacao possui perguntas estruturadas, recomendacoes,
-opcoes e revisao final, mas usa a UI nativa de cada harness. Relay nao mantem
-uma interface propria: Codex, Claude Code e outros clientes renderizam o fluxo
-da forma que suportarem.
+opcoes e revisao final e pode usar a UI nativa de cada harness. Outros clientes
+ou interfaces podem ler os registros, validar referencias, derivar estado e
+lancar um harness com a skill apropriada. Eles nao escrevem diretamente nos
+cinco registros do protocolo; as mutacoes pertencem as skills do Relay.
 
 ## Instalacao
 
@@ -166,10 +172,13 @@ O pacote publico sera publicado em
 ## Invariantes
 
 - Um handoff preenchido deve referenciar uma subtarefa pendente do TODO, sua
-  tarefa-pai no backlog e a spec de origem.
+  tarefa-pai no backlog e a spec de origem. Tambem deve registrar o harness que
+  o escreveu e um timestamp RFC 3339 com hora, segundos e fuso explicito.
 - Apenas uma subtarefa pode estar em handoff por vez.
 - Uma subtarefa concluida entra no changelog antes de sair do handoff.
 - Uma tarefa do backlog so pode ser marcada como concluida quando todas as
   subtarefas da sessao estiverem concluidas e registradas.
 - O backlog e a spec preservam rastreabilidade mesmo depois que TODO e handoff
   forem limpos.
+- Clientes podem ler, validar, derivar estado e lancar harnesses; somente as
+  skills do Relay alteram os cinco registros do protocolo.

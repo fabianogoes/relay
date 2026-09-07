@@ -25,6 +25,22 @@ without shared chat history.
 - `relay-session` starts or resumes implementation and enforces handoff
   integrity.
 
+## Authority boundary
+
+The five Relay record locations are `.specs/*.md`,
+`.orchestration/BACKLOG.md`, `.orchestration/TODO.md`,
+`.orchestration/HANDOFF.md`, and `.orchestration/CHANGELOG.md`. Clients such
+as a graphical interface, launcher, watcher, or other integration may read
+them, validate cross-references, derive and display state, and launch a
+harness with the appropriate Relay skill. Clients must not write these
+records directly.
+
+Relay skills executing inside a harness are the authoritative writers. A
+skill may mutate only the records and transitions assigned to it by this
+contract; read-only skills remain read-only. If a client cannot derive a
+required state from the records, change this protocol before adding private
+write logic to the client.
+
 ## Allowed statuses
 
 `backlog`, `ready`, `in_progress`, `blocked`, `done`, and `idle` are English
@@ -72,7 +88,9 @@ solely to adopt this convention.
 
 Use `[ ]` for `backlog` and `[x]` for `done`. Keep outcome and acceptance
 details in the source spec; each entry must remain independently selectable and
-point to exactly one spec.
+point to exactly one spec. Textual order may define only the deterministic
+default recommendation: the first unchecked entry. It does not encode priority,
+a queue, or a dependency, and the user may select any unchecked entry.
 
 ## TODO template
 
@@ -93,6 +111,11 @@ When there is no selected task, use this exact empty state:
 No active task.
 ```
 
+TODO item order does not encode dependency, execution sequence, effort, or
+progress percentage. When more than one unblocked `[ ]` item is available, the
+first one in textual order is only the deterministic default recommendation;
+the user may select any unblocked pending item.
+
 ## Handoff template
 
 ```markdown
@@ -102,7 +125,8 @@ No active task.
 - Backlog: B-001
 - TODO: T-001
 - Spec: .specs/20260905-001-<slug>.md
-- Updated: 2026-09-05
+- Harness: claude-code
+- Updated: 2026-09-05T23:41:00-03:00
 
 ## Objective
 <What this subtask must achieve.>
@@ -113,6 +137,17 @@ No active task.
 ## Context
 <Decisions, files inspected, command output, or blocker details needed to resume.>
 ```
+
+`Harness` identifies the harness whose Relay skill last wrote the nonempty
+handoff. Use a stable identifier matching `[a-z0-9][a-z0-9._-]*`, such as
+`codex`, `claude-code`, or `opencode`. Consumers must accept unknown
+identifiers that follow this format.
+
+`Updated` records the time of that same write. Use the RFC 3339 form
+`YYYY-MM-DDTHH:MM:SSZ` or `YYYY-MM-DDTHH:MM:SS±HH:MM`, for example
+`2026-09-05T23:41:00-03:00` or `2026-09-06T02:41:00Z`. Every mutation of a
+nonempty handoff must update both fields together. Readers must not infer
+either value from filesystem metadata.
 
 Use `Status: blocked` only when `Context` states the blocker and the condition
 needed to resume. An empty handoff is:
@@ -140,10 +175,13 @@ No active handoff.
 
 1. `relay-spec` writes one spec and one or more `backlog` entries, then asks
    whether to create another spec, implement the created spec, or stop.
-2. Selecting a backlog checklist item creates its `TODO.md` with compact
-   checklist subtasks.
+2. Selecting any unchecked backlog item creates its `TODO.md` with compact
+   checklist subtasks. If the user requests the default, use the first
+   unchecked item in textual order without treating it as higher priority.
 3. Before a subtask begins, write a handoff referencing the TODO ID, backlog
-   ID, and spec path; the session is then `in_progress`.
+   ID, spec path, origin harness, and update timestamp; the session is then
+   `in_progress`. If the user requests the default among multiple unblocked
+   TODO items, use the first one in textual order.
 4. To complete a subtask, append its changelog record, set its TODO marker to
    `[x]`, then clear the handoff.
 5. After all TODO items are `done`, mark the backlog task `done` and replace
@@ -166,6 +204,10 @@ Treat the state as `inconsistent` when any condition below fails:
 - A nonempty handoff does not name one pending TODO item.
 - Handoff, TODO, and backlog records do not agree on the same backlog ID.
 - The handoff's spec path is missing or differs from the task's spec path.
+- A nonempty handoff omits `Harness` or uses an identifier outside the allowed
+  format.
+- A nonempty handoff omits `Updated` or its value is not an RFC 3339 timestamp
+  with seconds and an explicit offset or UTC designator.
 - More than one current handoff record exists.
 - A TODO item is removed from handoff before its completed result is appended
   to the changelog.

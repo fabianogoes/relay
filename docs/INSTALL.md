@@ -1,7 +1,9 @@
 # Install Relay
 
 Relay version one is a plugin/skill package. It has no `relay` command-line
-program: the skills read and write the protocol files directly.
+program: the skills read and write the protocol files directly. Other clients
+may read, validate, derive state, and launch a harness with a Relay skill, but
+they do not mutate the five protocol records themselves.
 
 The public repository is `https://github.com/fabianogoes/relay`.
 

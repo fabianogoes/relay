@@ -30,7 +30,8 @@ Derive the state from the files, rather than chat history:
 ## Integrity rules
 
 - `HANDOFF.md` names exactly one pending TODO item, its parent backlog task,
-  and its source spec.
+  and its source spec. A nonempty handoff also records the origin harness and
+  an RFC 3339 update timestamp with seconds and an explicit timezone.
 - Finish in this order: append evidence to `CHANGELOG.md`, mark the TODO item
   `done`, then clear `HANDOFF.md`.
 - Clear `TODO.md` only after every item for its parent backlog task is done;
@@ -52,6 +53,8 @@ Derive the state from the files, rather than chat history:
   choice without mutating state while presenting it. It may repair a stale
   handoff only after explicit selection when the active TODO is unambiguous.
 - `relay-session` enforces the session-entry rules above.
+- Clients and interfaces may read, validate, derive state, and launch a
+  harness, but only Relay skills mutate the five protocol records.
 
 ## Development rules
 

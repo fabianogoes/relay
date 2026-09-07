@@ -22,9 +22,11 @@ checklist entries to `.orchestration/BACKLOG.md`:
 ```
 
 Keep scope and acceptance condition in the spec. Never renumber an existing
-spec. Report only the created
-paths and IDs. Do not create TODO items, write a handoff, or implement work
-before the user chooses the next path.
+spec. Backlog entries remain independently selectable. Their textual order
+provides only a deterministic default recommendation and never represents
+priority, a queue, or dependency. Report only the created paths and IDs. Do
+not create TODO items, write a handoff, or implement work before the user
+chooses the next path.
 
 After reporting the created spec and backlog IDs, ask one final native,
 selectable question with these options:
