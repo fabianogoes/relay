@@ -78,5 +78,10 @@ tokens e layout, não o contrato. São os mesmos componentes com dado diferente.
 
 ## Backlog candidates
 
-- B-001: Tela principal da `relay-ui` renderizando os seis estados do protocolo,
-  com contrato, estrutura e framework registrados em ADR
+- B-001: Contrato do estado derivado registrado em ADR, com um fixture por status
+- B-002: Fronteira e estrutura do `app/` registradas em ADR e criadas em disco
+- B-003: Framework da `relay-ui` registrado em ADR
+- B-004: Tela principal renderizando os seis fixtures (needs: B-001, B-002, B-003)
+
+Os três primeiros são independentes entre si e podem ser feitos em qualquer
+ordem. Só o quarto declara dependência, e ela é dado explícito, não posição.
