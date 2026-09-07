@@ -8,6 +8,7 @@ import type { UiPayload } from 'relay-core'
 import type { Harness, LaunchPlan } from './harness.ts'
 import type { LaunchRequest, LaunchResult } from './launcher.ts'
 import type { SpecSummary } from './specs.ts'
+import type { RunInfo } from './pty.ts'
 
 const UI_DIST = fileURLToPath(new URL('../../relay-ui/dist', import.meta.url))
 
@@ -32,6 +33,18 @@ export interface ServerDeps {
   harnesses(): Harness[]
   launchPreview(request: LaunchRequest): LaunchPlan | null
   launch(request: LaunchRequest): LaunchResult
+  launchEmbedded?(request: LaunchRequest): EmbeddedStart | null
+  runInfo?(runId: string): RunInfo | null
+  runWrite?(runId: string, data: string): void
+  runTerminate?(runId: string): void
+  runScrollback?(runId: string): string | null
+  runDiskEntries?(runId: string): unknown[]
+  runs?(): RunInfo[]
+}
+
+export interface EmbeddedStart {
+  runId: string
+  scrollback: string
 }
 
 export interface RelayServerOptions {
@@ -47,6 +60,9 @@ export interface RelayServer {
   address: string
   close(): Promise<void>
   broadcast(): void
+  termBroadcast(runId: string, data: string): void
+  termExit(runId: string, code: number | null): void
+  termDisk(runId: string, entries: unknown): void
 }
 
 function json(res: ServerResponse, status: number, body: unknown): void {
@@ -223,6 +239,59 @@ export function createRelayServer(options: RelayServerOptions): Promise<RelaySer
       }
       return
     }
+    if (url.pathname === '/api/launch/embedded') {
+      if (!execEnabled || !deps.launchEmbedded) {
+        res.writeHead(404)
+        res.end()
+        return
+      }
+      if (req.method !== 'POST') {
+        res.writeHead(404)
+        res.end()
+        return
+      }
+      try {
+        const body = await readJsonBody(req)
+        const request: LaunchRequest = {
+          harness: String(body.harness ?? ''),
+          skill: body.skill === 'relay-spec' ? 'relay-spec' : 'relay-session',
+          intent: String(body.intent ?? ''),
+        }
+        const started = deps.launchEmbedded(request)
+        if (started === null) {
+          res.writeHead(400)
+          res.end()
+          return
+        }
+        json(res, 200, started)
+      } catch {
+        res.writeHead(400)
+        res.end()
+      }
+      return
+    }
+    if (url.pathname.startsWith('/api/run/') && req.method === 'POST') {
+      if (!execEnabled) {
+        res.writeHead(404)
+        res.end()
+        return
+      }
+      const runId = decodeURIComponent(url.pathname.slice('/api/run/'.length))
+      try {
+        const body = await readJsonBody(req)
+        if (body.action === 'terminate') {
+          deps.runTerminate?.(runId)
+          json(res, 200, { terminated: true })
+        } else {
+          res.writeHead(400)
+          res.end()
+        }
+      } catch {
+        res.writeHead(400)
+        res.end()
+      }
+      return
+    }
     if (req.method !== 'GET') {
       res.writeHead(404)
       res.end()
@@ -257,6 +326,21 @@ export function createRelayServer(options: RelayServerOptions): Promise<RelaySer
       json(res, 200, deps.harnesses())
       return
     }
+    if (route === 'runs') {
+      json(res, 200, deps.runs ? deps.runs() : [])
+      return
+    }
+    if (route.startsWith('run/')) {
+      const runId = decodeURIComponent(route.slice(4))
+      if (parts.length === 3) {
+        if (parts[2] === 'disk') {
+          json(res, 200, deps.runDiskEntries ? deps.runDiskEntries(runId) : [])
+          return
+        }
+        json(res, 200, deps.runInfo ? deps.runInfo(runId) : null)
+        return
+      }
+    }
     res.writeHead(404)
     res.end()
   }
@@ -269,12 +353,92 @@ export function createRelayServer(options: RelayServerOptions): Promise<RelaySer
     },
   })
 
+  const termWss = new WebSocketServer({
+    noServer: true,
+    handleProtocols(protocols) {
+      return protocols.has(`relay.${token}`) ? `relay.${token}` : false
+    },
+  })
+
+  const termClients = new Map<string, Set<WebSocket>>()
+
+  function termBroadcast(runId: string, data: string): void {
+    const clients = termClients.get(runId)
+    if (!clients) return
+    for (const client of clients) {
+      if (client.readyState === WebSocket.OPEN) client.send(data)
+    }
+  }
+
+  function termExit(runId: string, code: number | null): void {
+    const clients = termClients.get(runId)
+    if (!clients) {
+      termClients.delete(runId)
+      return
+    }
+    for (const client of clients) {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ kind: 'exit', runId, exitCode: code }))
+        client.close()
+      }
+    }
+    termClients.delete(runId)
+  }
+
+  function termDisk(runId: string, entries: unknown): void {
+    const clients = termClients.get(runId)
+    if (!clients) return
+    const frame = JSON.stringify({ kind: 'disk', runId, entries })
+    for (const client of clients) {
+      if (client.readyState === WebSocket.OPEN) client.send(frame)
+    }
+  }
+
   server.on('upgrade', (req, socket, head) => {
     const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`)
     const requestOrigin = req.headers.origin
     const proto = req.headers['sec-websocket-protocol']
     const originOk = requestOrigin === serverOrigin
     const tokenOk = typeof proto === 'string' && proto === `relay.${token}`
+
+    if (url.pathname === '/ws/term') {
+      if (!originOk || !tokenOk) {
+        socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n')
+        socket.destroy()
+        return
+      }
+      termWss.handleUpgrade(req, socket, head, (ws) => {
+        let runId = ''
+        ws.on('message', (raw) => {
+          try {
+            const msg = JSON.parse(String(raw)) as { kind?: string; runId?: string; data?: string }
+            if (msg.kind === 'attach' && msg.runId) {
+              runId = msg.runId
+              let set = termClients.get(runId)
+              if (!set) {
+                set = new Set()
+                termClients.set(runId, set)
+              }
+              set.add(ws)
+              const sb = deps.runScrollback?.(runId) ?? ''
+              if (sb) ws.send(JSON.stringify({ kind: 'data', runId, data: sb }))
+            } else if (msg.kind === 'input' && runId && msg.data !== undefined) {
+              deps.runWrite?.(runId, msg.data)
+            }
+          } catch {
+            // frame inválido: ignora
+          }
+        })
+        ws.on('close', () => {
+          if (runId) termClients.get(runId)?.delete(ws)
+        })
+        ws.on('error', () => {
+          if (runId) termClients.get(runId)?.delete(ws)
+        })
+      })
+      return
+    }
+
     if (url.pathname !== '/ws' || !originOk || !tokenOk) {
       socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n')
       socket.destroy()
@@ -296,9 +460,14 @@ export function createRelayServer(options: RelayServerOptions): Promise<RelaySer
         port: address.port,
         address: address.address,
         broadcast,
+        termBroadcast,
+        termExit,
+        termDisk,
         close: () =>
           new Promise<void>((done) => {
             for (const client of clients) client.close()
+            for (const set of termClients.values()) for (const c of set) c.close()
+            termWss.close()
             wss.close()
             server.closeAllConnections()
             server.close(() => done())

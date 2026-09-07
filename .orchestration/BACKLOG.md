@@ -14,5 +14,5 @@
 - [x] B-012 - Componentes refinados conforme o prototipo, com o seletor de harness e consentimento (spec: `.specs/20260907-006-refinamento-visual-prototipo.md`)
 - [x] B-013 - relay-ui consumindo dado real com a segunda visao de tres colunas (spec: `.specs/20260907-007-dado-real-e-segunda-visao.md`) (needs: B-011)
 - [x] B-014 - Lancamento via argv, PreflightModal com dado real (spec: `.specs/20260907-008-preflight-e-lancamento.md`) (needs: B-011, B-012)
-- [ ] B-015 - Terminal embutido com PTY, desanexar/reanexar e aviso de conflito de teclado (spec: `.specs/20260907-009-terminal.md`) (needs: B-014)
+- [x] B-015 - Terminal embutido com PTY, desanexar/reanexar e aviso de conflito de teclado (spec: `.specs/20260907-009-terminal.md`) (needs: B-014)
 - [ ] B-016 - Acessibilidade auditada e componentes remanescentes construidos (spec: `.specs/20260907-010-acessibilidade-e-remanescentes.md`) (needs: B-012, B-013)

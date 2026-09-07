@@ -206,6 +206,25 @@ test('sob --no-exec a rota de lançamento também é 404, não 403 (A-004)', asy
   }
 })
 
+test('rota embutida exige exec ligado e launchEmbedded; sem ela, 404', async () => {
+  const ws = makeWorkspace()
+  // com exec ligado mas sem launchEmbedded no deps, devolve 404 (superfície reservada)
+  const server = await createRelayServer({ workspace: ws.dir, execEnabled: true, token: TOKEN, deps: makeDeps(ws.dir) })
+  const base = `http://127.0.0.1:${server.port}`
+  try {
+    const res = await request(base, '/api/launch/embedded', {
+      method: 'POST',
+      token: TOKEN,
+      fetchSite: 'same-origin',
+      body: { harness: 'claude-code', skill: 'relay-session', intent: 'x' },
+    })
+    assert.equal(res.status, 404)
+  } finally {
+    await server.close()
+    ws.cleanup()
+  }
+})
+
 function connectWs(url: string, token: string): Promise<{ ws: WebSocket; messages: UiPayload[] }> {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(url, `relay.${token}`, { origin: `http://127.0.0.1:${new URL(url).port}` })

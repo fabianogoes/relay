@@ -6,8 +6,10 @@ import { listSpecs } from './specs.ts'
 import { detectHarnesses } from './harness.ts'
 import { launch, preview } from './launcher.ts'
 import { watchWorkspace } from './watcher.ts'
+import { getRun, startExec, listActiveRuns, executorEvents } from './executor.ts'
 import { createRelayServer, type RelayServer, type ServerDeps } from './server.ts'
 import type { Environment } from 'relay-core'
+import type { RunInfo } from './pty.ts'
 
 export interface StartOptions {
   workspace: string
@@ -48,6 +50,50 @@ export function makeDeps(workspace: string, environment: Environment): ServerDep
     launch(request) {
       return launch(request, workspace)
     },
+    launchEmbedded(request) {
+      try {
+        const plan = preview(request, workspace)
+        const run = startExec(plan)
+        if (!run) return null
+        return { runId: run.runId, scrollback: run.handle.scrollback() }
+      } catch {
+        return null
+      }
+    },
+    runInfo(runId) {
+      const run = getRun(runId)
+      if (!run) return null
+      return {
+        runId: run.runId,
+        status: run.handle.status(),
+        exitCode: run.handle.exitCode(),
+        startedAt: run.handle.startedAt(),
+      }
+    },
+    runWrite(runId, data) {
+      getRun(runId)?.handle.write(data)
+    },
+    runTerminate(runId) {
+      getRun(runId)?.handle.terminate()
+    },
+    runScrollback(runId) {
+      return getRun(runId)?.handle.scrollback() ?? null
+    },
+    runDiskEntries(runId) {
+      return getRun(runId)?.disk.entries() ?? []
+    },
+    runs() {
+      const info: RunInfo[] = []
+      for (const run of listActiveRuns()) {
+        info.push({
+          runId: run.runId,
+          status: run.handle.status(),
+          exitCode: run.handle.exitCode(),
+          startedAt: run.handle.startedAt(),
+        })
+      }
+      return info
+    },
   }
 }
 
@@ -61,7 +107,19 @@ export async function start(options: StartOptions): Promise<RelayServer> {
     port: options.port,
     deps: makeDeps(options.workspace, environment),
   })
-  const watcher = watchWorkspace(options.workspace, () => server.broadcast())
+  const watcher = watchWorkspace(options.workspace, () => {
+    server.broadcast()
+    for (const run of listActiveRuns()) {
+      const fresh = run.disk.diff()
+      if (fresh.length > 0) server.termDisk(run.runId, fresh)
+    }
+  })
+  executorEvents.runStarted = (run) => {
+    run.handle.onData((chunk) =>
+      server.termBroadcast(run.runId, JSON.stringify({ kind: 'data', runId: run.runId, data: chunk })),
+    )
+    run.handle.onExit((code) => server.termExit(run.runId, code))
+  }
   const originalClose = server.close.bind(server)
   server.close = () => {
     watcher.close()

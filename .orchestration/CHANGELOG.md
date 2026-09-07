@@ -1,5 +1,105 @@
 # Change log
 
+## 2026-09-07 - T-001 - PTY no relay-host por processo nativo
+- Backlog: B-015
+- Spec: .specs/20260907-009-terminal.md
+- Result: `relay-host/src/pty.ts` aloca um PTY por execução **sem dependência
+  nativa** (decisão com o usuário, honrando a ADR-0004 contra `npm install`
+  de módulo nativo): `script -q -e -F <fifo> -- <bin> <args...>` no macOS cria
+  o PTY, grava o fluxo num fifo lido com `O_NONBLOCK` (nada bloqueia) e
+  propaga o exit code do filho via `-e`. O handle expõe `write` (teclas →
+  stdin), `scrollback()` (acumulado por run), `terminate` (SIGHUP, mata) e os
+  callbacks `onData`/`onExit`. `executor.ts` mantém o conjunto de runs ativos.
+- Evidence: `node --test` do host 16/16; typecheck limpo; smoke test do host
+  (start/close limpos). `script -F <fifo>` validado empiricamente: alocou PTY,
+  capturou `hello_pipe\r\n` e devolveu exit 0. Desanexar só fecha o WebSocket
+  do cliente — o processo e o scrollback ficam no host.
+- Criteria: none
+- Decisions: PTY sem `node-pty` (módulo nativo) — a alternativa foi registrada
+  como violação da ADR-0004 e descartada. `resize` é no-op porque o tamanho da
+  PTY do `script` é fixo por processo; o fit do xterm é client-side.
+
+## 2026-09-07 - T-002 - Canal de execução por WebSocket no relay-host
+- Backlog: B-015
+- Spec: .specs/20260907-009-terminal.md
+- Result: `server.ts` ganhou `/ws/term` (mesmo token/Origem/subprotocol do
+  `/ws`), multiplexando frames `data`/`exit`/`disk` por run; `POST
+  /api/launch/embedded` (404 sob `--no-exec`), `GET /api/runs`,
+  `GET /api/run/<id>` e `POST /api/run/<id>` (terminate). O host envia o
+  scrollback guardado no `attach` de uma reconexão, satisfazendo o replay.
+- Evidence: teste novo em `server.test.ts` (launch/embedded 404 sem
+  `launchEmbedded`); typecheck limpo; `/ws` de payload intacto (15 testes
+  originais seguem passando).
+- Criteria: none
+- Decisions: um segundo endpoint WS separa Canal A (fluxo do terminal) do
+  Canal B (payload de estado), mesma tese do design system — o estado vem do
+  disco, nunca do stdout parseado.
+
+## 2026-09-07 - T-003 - Componente Terminal isolado do re-render do Vue
+- Backlog: B-015
+- Spec: .specs/20260907-009-terminal.md
+- Result: `Terminal.vue` monta `@xterm/xterm` num `<div ref>` próprio com
+  atualização **somente imperativa** — `term.write` no callback de dado, fit
+  por `ResizeObserver`; nenhum binding reativo mira o conteúdo do container.
+  `lib/term-client.ts` abre `/ws/term` e `lib/execution.ts` mantém o store de
+  execução (launch/detach/reattach/terminate) com buffer de scrollback no
+  cliente.
+- Evidence: `vue-tsc`/`vite build` limpos; `grep` por `v-html`/`innerHTML` em
+  `Terminal.vue` retorna vazio — o subárvore do xterm nunca é tocado pelo
+  ciclo reativo.
+- Criteria: A-001, A-003
+- Decisions: xterm.js habilita alt-screen, bracketed paste e mouse tracking
+  por padrão no protocolo terminal; nada foi desabilitado.
+
+## 2026-09-07 - T-004 - Modo de execução na UI
+- Backlog: B-015
+- Spec: .specs/20260907-009-terminal.md
+- Result: `ExecutionMode.vue` ocupa a viewport (`position: fixed; inset: 0`)
+  **sem** as abas Agora/Trabalho quando há run anexada; barra com selo do
+  harness (tom de identidade), nome da execução, StatusPill e controles por
+  estado — `em execução` tem "Deixar em segundo plano" (secundário) e
+  "Encerrar processo" (perigo), `concluído` só "Fechar". `KeyboardWarning.vue`
+  mostra o aviso de conflito `Cmd+W`/`Cmd+T` na primeira execução, com a
+  alternativa "modo externo".
+- Evidence: `v-if="exec.status === 'running'"` restringe os controles por
+  estado; o `v-else` de "Fechar" só renderiza quando o status é `exited` —
+  inalcançável com processo vivo (A-006). O aviso fica sob
+  `firstRunThisSession` (A-004).
+- Criteria: A-004, A-006, A-007
+- Decisions: "Encerrar processo" exige um segundo clique que **nomeia** o que
+  será descartado (`Descartar {nome}?`); desanexar nunca confirma.
+
+## 2026-09-07 - T-005 - Faixa de segundo plano e painel "Gravado em disco"
+- Backlog: B-015
+- Spec: .specs/20260907-009-terminal.md
+- Result: `BackgroundStrip.vue` aparece só com execução desanexada, com
+  contador verdadeiro de arquivos escritos e "Reconectar ao terminal" — a
+  reconexão reanexa e exibe o selo `RECONECTADO À EXECUÇÃO VIVA`.
+  `DiskLog.vue` é a coluna direita do modo de execução; `disk.ts` no host
+  tira diff dos quatro registros de `.orchestration/` e emite `disk` frames
+  pelo `/ws/term`, então o painel recebe entradas **durante** a execução, não
+  só ao final.
+- Evidence: `disk.ts` com `diff()` incremental por run (snapshot + comparação,
+  tipo `ATUALIZADO`/`LIMPO`); frames `disk` lidos pelo `onDisk` do cliente e
+  empurrados no `useDisk()`. Typecheck/build limpos.
+- Criteria: A-005, A-008
+- Decisions: o diff Antes/Depois completo (spec 010, A-002) compartilha o
+  mesmo tracker de disco; aqui entrega a presença e o fluxo ao vivo.
+
+## 2026-09-07 - T-006 - Evidência: testes, typecheck, build e ordem de estado
+- Backlog: B-015
+- Spec: .specs/20260907-009-terminal.md
+- Result: fechamento da integração — o `status` da barra só vira `exited` pelo
+  callback `onExit` do socket, que por sua vez só dispara no `close` do filho
+  no host. O `pillStatus` deriva `in_progress`→green / `exited`→`done`, então
+  "concluído" jamais antecede a saída do processo.
+- Evidence: relay-core 24/24 e relay-host 16/16 em `node --test`;
+  `vue-tsc --noEmit` limpo nos três pacotes; `vite build` limpo; host faz
+  start/close limpos (smoke). A-009 é garantido por construção: estado → tom
+  via piloto de execução, não por polling.
+- Criteria: A-002, A-009
+- Decisions: nenhuma.
+
 ## 2026-09-07 - T-005 - Quatro portas de lançamento num modal só
 - Backlog: B-014
 - Spec: .specs/20260907-008-preflight-e-lancamento.md

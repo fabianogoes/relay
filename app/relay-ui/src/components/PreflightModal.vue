@@ -12,6 +12,7 @@ import {
 } from '../lib/harness'
 import { apiPostJson, useRelayClient } from '../lib/relay-client'
 import { closePreflight, localPreview, usePreflight, type LaunchPlan } from '../lib/launch'
+import { launchEmbedded } from '../lib/execution'
 
 const props = defineProps<{ workspace: string }>()
 
@@ -108,15 +109,27 @@ async function confirm(): Promise<void> {
   launching.value = true
   error.value = ''
   try {
-    await apiPostJson('/api/launch', {
+    await launchEmbedded({
       harness: harness.id,
+      harnessName: harness.name,
       skill: preflight.skill,
       intent: intent.value,
+      processName: harness.name,
     })
     closePreflight()
   } catch {
-    error.value = 'Falha ao lançar o processo.'
-    launching.value = false
+    // PTY indisponível: cai no modo externo (comportamento de antes da spec 009)
+    try {
+      await apiPostJson('/api/launch', {
+        harness: harness.id,
+        skill: preflight.skill,
+        intent: intent.value,
+      })
+      closePreflight()
+    } catch {
+      error.value = 'Falha ao lançar o processo.'
+      launching.value = false
+    }
   }
 }
 
