@@ -36,6 +36,12 @@ not only the choice.
   loopback HTTP and WebSocket, TypeScript throughout, browser UI with the
   application shell deferred, and the rule that the application never writes a
   protocol record.
+- `docs/adr/0002-carregamento-condicional-de-instrucoes.md` — Accepted — how
+  agent instructions reach a session: each rule sits at the trigger where it
+  becomes relevant (skill, nested `AGENTS.md`, tool hook) instead of in the root
+  router; one executable rule with a shell per harness; the neutral directory
+  holds the file and each harness gets a per-item symlink; repository tooling is
+  never package surface.
 
 ## Package boundaries
 
