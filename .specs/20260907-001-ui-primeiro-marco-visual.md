@@ -64,19 +64,20 @@ tokens e layout, não o contrato. São os mesmos componentes com dado diferente.
 
 ## Acceptance criteria
 
-- [ ] `claude --plugin-dir .` e os symlinks de `skills/` continuam funcionando
-      sem `npm install`
-- [ ] `rm -rf app/` devolve o repositório ao estado anterior, exceto o ponteiro
-      no `AGENTS.md`
-- [ ] Existe um tipo do estado derivado e sete fixtures: um por status e um
-      para o diagnóstico `inconsistent`
-- [ ] A tela principal renderiza os sete fixtures sem alterar componente algum,
-      apenas o dado de entrada
-- [ ] Toda cor, espaçamento e raio vêm de `var(--token)`; nenhum literal fora do
-      `tokens.css`
-- [ ] Nenhum arquivo de `app/` escreve em `.specs/` ou `.orchestration/`
-- [ ] Três ADRs registradas: contrato do estado, estrutura do `app/`, framework
-- [ ] O `AGENTS.md` ganha no máximo uma linha apontando para `app/`
+- A-001 - `claude --plugin-dir .` e os symlinks de `skills/` continuam
+  funcionando sem `npm install`
+- A-002 - `rm -rf app/` devolve o repositório ao estado anterior, exceto o
+  ponteiro no `AGENTS.md`
+- A-003 - Os sete fixtures existem **como arquivos**: um por status e um para o
+  diagnóstico `inconsistent`
+- A-004 - A tela principal renderiza os sete fixtures sem alterar componente
+  algum, apenas o dado de entrada
+- A-005 - Toda cor, espaçamento e raio vêm de `var(--token)`; nenhum literal
+  fora do `tokens.css`
+- A-006 - Nenhum arquivo de `app/` escreve em `.specs/` ou `.orchestration/`
+- A-007 - Três ADRs registradas: contrato do estado, estrutura do `app/`,
+  framework
+- A-008 - O `AGENTS.md` ganha no máximo uma linha apontando para `app/`
 
 ## Backlog candidates
 

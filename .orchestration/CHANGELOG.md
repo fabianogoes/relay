@@ -171,3 +171,33 @@
 - Decisions: a expansao custou seis linhas e foram todas recuperadas cortando
   redundancia, nao conteudo — o limite forcou concisao em texto que ja estava
   prolixo.
+
+## 2026-09-07 - T-001 - Spec 20260907-001 convertida
+- Backlog: B-007
+- Spec: .specs/20260907-002-evidencia-nomeia-criterio.md
+- Result: os oito criterios da spec da UI passaram de checkbox para A-001..A-008
+  sem marcador. O A-003 foi reescrito para dizer "existem **como arquivos**",
+  porque a redacao anterior era ambigua o bastante para eu ter marcado como
+  satisfeito o que esta so descrito numa tabela de ADR.
+- Evidence: a secao Acceptance criteria da spec 001 usa A-NNN sem marcador; o
+  formato bate com o template novo em docs/PROTOCOL.md.
+- Criteria: A-008
+- Decisions: converter tambem serviu de teste do template. A ambiguidade do
+  A-003 so apareceu quando precisei decidir se ele estava satisfeito — que e
+  exatamente o efeito pretendido pela mudanca de B-005.
+
+## 2026-09-07 - T-002 - Evidencia reconciliada para a spec da UI
+- Backlog: B-007
+- Spec: .specs/20260907-002-evidencia-nomeia-criterio.md
+- Result: atribuida evidencia retroativa aos criterios da spec 20260907-001 que
+  o trabalho ja concluido de fato satisfez, por registro novo. Nenhum registro
+  passado foi editado: o CHANGELOG e append-only.
+- Evidence: da spec 20260907-001 — A-001, A-002 e A-006 verificados por comando
+  em clone limpo durante B-002; A-007 pelas tres ADRs no indice; A-008 pela
+  linha unica no roteador. Ficam SEM evidencia A-003, A-004 e A-005, todos
+  dependentes de B-004.
+- Criteria: A-008
+- Decisions: A-003 foi examinado e considerado NAO satisfeito. Os sete fixtures
+  existem na ADR-0003 como dois JSON completos mais uma tabela descrevendo os
+  outros cinco; como arquivos, nao existem. Era tentador contar como pronto, e
+  a regra nova e justamente o que obrigou o exame.
