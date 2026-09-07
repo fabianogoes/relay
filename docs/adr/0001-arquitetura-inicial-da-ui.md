@@ -216,17 +216,30 @@ central da tela, as três telas em vez de seis status, densidade e contraste, o
 que remover do protótipo — são decisões de design de interface, não de
 arquitetura, e não entram aqui.
 
-**Decisões deliberadamente não tomadas**, para que não sejam confundidas com
-omissão:
+**Decisão deliberadamente não tomada**, para que não seja confundida com
+omissão: a casca de aplicação (ponto 4).
 
-- a casca de aplicação (ponto 4);
-- a semântica de prioridade do backlog: `relay-continue` fala em "maior
-  prioridade" sem campo correspondente no protocolo;
-- a semântica de ordem e dependência entre itens do `TODO.md`.
+**Correção — semântica de ordem.** A redação original desta ADR listava a
+prioridade do backlog e a ordem do `TODO.md` como dívida de contrato em aberto,
+e atribuía a `relay-continue` a expressão "maior prioridade". A atribuição
+estava errada já na redação: nenhuma skill usa essa expressão, e o protocolo já
+havia decidido as duas semânticas em 2026-09-06 (`562a439`), antes desta ADR
+existir. A observação veio de
+[`../design-system/ui-proposal.md`](../design-system/ui-proposal.md), escrita
+contra uma leitura anterior das skills, e foi copiada para cá sem ser
+confrontada com o protocolo.
 
-As duas últimas são dívida de contrato do protocolo, não da UI. Enquanto não
-forem decididas, a interface não deve afirmá-las: nada de fila numerada, rótulo
-`FIFO`, posição, barra de progresso percentual ou pista com dependências.
+A decisão do protocolo é negativa e definitiva: a ordem textual não codifica
+prioridade, fila, dependência, sequência de execução, esforço nem percentual de
+progresso (`docs/PROTOCOL.md:90-94` para o backlog, `:114-117` para o TODO). Ela
+é apenas a recomendação padrão determinística, e o usuário pode selecionar
+qualquer item pendente.
+
+A consequência para a interface não muda: nada de fila numerada, rótulo `FIFO`,
+posição, barra de progresso percentual ou pista com dependências. O que muda é o
+motivo, e a diferença importa para quem desenhar a tela — não é assunto pendente
+à espera de decisão, é assunto decidido no negativo, e a interface nunca deve
+afirmá-lo.
 
 **Já resolvido.** A proveniência do handoff — `Harness` e `Updated` em RFC 3339
 com fuso explícito — foi acrescentada ao protocolo em 2026-09-06
