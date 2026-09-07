@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import {
   CONSENT_OPTIONS,
-  HARNESS_FIXTURE,
+  allHarnesses,
   closeSelector,
   harnessInitials,
   harnessTone,
@@ -14,6 +14,8 @@ import {
 const props = defineProps<{ workspace: string }>()
 
 const sel = selection()
+
+const harnesses = computed(() => allHarnesses())
 
 const selectedConsent = computed(
   () => CONSENT_OPTIONS.find((o) => o.id === sel.consent) ?? CONSENT_OPTIONS[0],
@@ -58,7 +60,7 @@ function onBackdropClick(): void {
       <section class="selector__section">
         <h3 class="selector__section-title">Harness</h3>
         <ul class="selector__harnesses">
-          <li v-for="harness in HARNESS_FIXTURE" :key="harness.id">
+          <li v-for="harness in harnesses" :key="harness.id">
             <button
               class="harness-option"
               :class="{

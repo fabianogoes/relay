@@ -12,12 +12,23 @@ export interface Harness {
   state: HarnessState
 }
 
+export type RelaySkill = 'relay-spec' | 'relay-session'
+
+export interface LaunchPlan {
+  bin: string
+  args: string[]
+  prompt: string
+  cwd: string
+}
+
 interface HarnessSpec {
   id: string
   name: string
   bin: string
   versionFlags: string[]
   authFiles: string[]
+  launchArgs: string[]
+  promptPrefix: (skill: string) => string
 }
 
 const HARNESS_SPECS: HarnessSpec[] = [
@@ -27,6 +38,8 @@ const HARNESS_SPECS: HarnessSpec[] = [
     bin: 'claude',
     versionFlags: ['--version'],
     authFiles: ['.claude', '.claude.json'],
+    launchArgs: ['-p'],
+    promptPrefix: (skill) => `/${skill}`,
   },
   {
     id: 'codex',
@@ -34,6 +47,8 @@ const HARNESS_SPECS: HarnessSpec[] = [
     bin: 'codex',
     versionFlags: ['--version'],
     authFiles: ['.codex/auth.json'],
+    launchArgs: ['exec'],
+    promptPrefix: (skill) => `⟨${skill}⟩`,
   },
   {
     id: 'opencode',
@@ -41,8 +56,14 @@ const HARNESS_SPECS: HarnessSpec[] = [
     bin: 'opencode',
     versionFlags: ['--version'],
     authFiles: ['.local/share/opencode/auth.json'],
+    launchArgs: ['run'],
+    promptPrefix: (skill) => `Use ${skill}`,
   },
 ]
+
+function specById(id: string): HarnessSpec | null {
+  return HARNESS_SPECS.find((spec) => spec.id === id) ?? null
+}
 
 function detectOne(spec: HarnessSpec): Harness {
   let version = ''
@@ -59,4 +80,27 @@ function detectOne(spec: HarnessSpec): Harness {
 
 export function detectHarnesses(): Harness[] {
   return HARNESS_SPECS.map(detectOne)
+}
+
+export function composePrompt(harnessId: string, skill: RelaySkill, intent: string): string {
+  const spec = specById(harnessId)
+  if (!spec) throw new Error(`harness desconhecido: ${harnessId}`)
+  const prompt = `${spec.promptPrefix(skill)} ${intent}`.trim()
+  return prompt
+}
+
+export function buildLaunchArgv(
+  harnessId: string,
+  skill: RelaySkill,
+  intent: string,
+  cwd: string,
+): LaunchPlan {
+  const spec = specById(harnessId)
+  if (!spec) throw new Error(`harness desconhecido: ${harnessId}`)
+  return {
+    bin: spec.bin,
+    args: [...spec.launchArgs],
+    prompt: composePrompt(harnessId, skill, intent),
+    cwd,
+  }
 }

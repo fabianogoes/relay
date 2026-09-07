@@ -3,8 +3,8 @@ import { computed, onMounted, ref, watch } from 'vue'
 import type { UiPayload } from '../types'
 import ChecklistList from './ChecklistList.vue'
 import EmptyState from './EmptyState.vue'
-import PreflightModal from './PreflightModal.vue'
 import { apiGetJson, apiGetRaw, useRelayClient } from '../lib/relay-client'
+import { openPreflight } from '../lib/launch'
 
 interface SpecSummary {
   id: string
@@ -18,7 +18,8 @@ const client = useRelayClient()
 const specs = ref<SpecSummary[]>([])
 const changelog = ref('')
 const selectedSpecId = ref<string | null>(null)
-const preflightOpen = ref(false)
+
+const execEnabled = computed(() => props.payload.environment.execEnabled)
 
 async function reload(): Promise<void> {
   if (!client.hostMode) return
@@ -53,6 +54,10 @@ const backlog = computed(() => {
 function selectSpec(id: string): void {
   selectedSpecId.value = id
 }
+
+function onNewSpec(): void {
+  openPreflight({ title: 'Especificar uma ideia', skill: 'relay-spec', intent: 'Especificar uma ideia' })
+}
 </script>
 
 <template>
@@ -60,7 +65,11 @@ function selectSpec(id: string): void {
     <div class="work__column">
       <header class="work__column-header">
         <h2 class="work__column-title">Specs</h2>
-        <button class="button button--secondary work__new-spec" @click="preflightOpen = true">
+        <button
+          v-if="execEnabled"
+          class="button button--secondary work__new-spec"
+          @click="onNewSpec"
+        >
           + nova spec
         </button>
       </header>
@@ -103,6 +112,4 @@ function selectSpec(id: string): void {
       <EmptyState v-if="!changelog" message="Changelog vazio." />
     </div>
   </section>
-
-  <PreflightModal :open="preflightOpen" @close="preflightOpen = false" />
 </template>

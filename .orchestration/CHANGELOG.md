@@ -1,5 +1,96 @@
 # Change log
 
+## 2026-09-07 - T-005 - Quatro portas de lançamento num modal só
+- Backlog: B-014
+- Spec: .specs/20260907-008-preflight-e-lancamento.md
+- Result: as quatro portas abrem o mesmo `PreflightModal` via `openPreflight`:
+  "+ nova spec" (WorkScreen) e "Iniciar entrevista" (tela Escolher) →
+  `relay-spec`/“Especificar uma ideia”; "Começar" (por tarefa disponível) →
+  `relay-session`/“Iniciar sessão em {id}”; "Retomar" (HandoffCard) →
+  `relay-session`/“Retomar sessão”. Toda porta fica oculta quando
+  `environment.execEnabled` é falso, então sob `--no-exec` o modal nunca é
+  renderizado.
+- Evidence: `vue-tsc`/`vite build` limpos; `grep` por `openPreflight` encontra
+  só as três origens, todas atrás de `v-if="execEnabled"`; `grep` por outra
+  rota chamando `/api/launch` não encontra nenhuma além do `PreflightModal`.
+  Smoke test do host: `/api/launch/preview` devolve o plano e `/api/harnesses`
+  devolve a detecção real.
+- Criteria: A-003, A-007
+- Decisions: o 404 da rota sob `--no-exec` já estava testado em T-002; aqui
+  fecha a outra metade do A-003 (portas ocultas → modal nunca renderizado).
+
+## 2026-09-07 - T-004 - PreflightModal completo com argv real
+- Backlog: B-014
+- Spec: .specs/20260907-008-preflight-e-lancamento.md
+- Result: `PreflightModal.vue` reescrito: tabela `bin`/`arg`/`prompt`/`cwd` com
+  uma linha por elemento real do argv (vinda de `POST /api/launch/preview`,
+  nunca string montada), campo `prompt` editável (a intenção), seletor de
+  harness e consentimento embutidos, aviso de execução e um único botão
+  "▶ Executar no {harness}". Trocar o harness re-compõe as linhas e o rótulo do
+  botão. Novo store `lib/launch.ts` (`openPreflight`/`closePreflight`/
+  `usePreflight`) e `apiPostJson` no relay-client. `App.vue` renderiza um único
+  modal; `WorkScreen` abre via store.
+- Evidence: `vue-tsc` e `vite build` limpos; o preview vem do host
+  (autoridade única do argv) e o confirm envia `{ harness, skill, intent }`
+  para `POST /api/launch`. Esc/Cancelar chamam `closePreflight` sem lançar; o
+  modal não fecha por clique fora (só o seletor standalone fecha assim).
+  Fixture mode usa `localPreview` dev-only.
+- Criteria: A-002, A-004, A-008, A-009
+- Decisions: a linha `prompt` da tabela é o elemento composto do argv (prefixo
+  + intenção); o campo editável é a intenção, que re-compõe a linha via
+  preview. O consentimento nunca dispensa o botão de confirmar.
+
+## 2026-09-07 - T-003 - Seletor e selo de harness com dado real
+- Backlog: B-014
+- Spec: .specs/20260907-008-preflight-e-lancamento.md
+- Result: `lib/harness.ts` trocou a fonte de dado de `HARNESS_FIXTURE` por um
+  store reativo (`setHarnesses`/`allHarnesses`/`harnessById`); `App.vue` carrega
+  `GET /api/harnesses` no modo host e cai na fixture quando não há host.
+  `HarnessSelector`, `Header` e `HandoffCard` passaram a ler da lista real, sem
+  mudança de forma (mesma marcação, tons e estados).
+- Evidence: `vue-tsc --noEmit` limpo; os três componentes não importam mais
+  `HARNESS_FIXTURE` para renderizar a lista (só como fallback de último recurso
+  no `Header`); em fixture mode a lista continua exatamente a anterior.
+- Criteria: A-006
+- Decisions: a detecção real já existia no host (`detectHarnesses`); esta
+  mudança só a conecta à view. A fixture permanece como rota de desenvolvimento.
+
+## 2026-09-07 - T-002 - Rota de lançamento com argv[] e modo externo
+- Backlog: B-014
+- Spec: .specs/20260907-008-preflight-e-lancamento.md
+- Result: `relay-host/src/launcher.ts` com `preview` e `launch`. `launch` grava
+  um script wrapper em área de scratch (tmpdir/relay-run/<id>), com cada
+  elemento do argv entre aspas simples, `echo $$ > pid` e `echo $? > exit`
+  gravados pelo próprio script, e abre via `open -a <emulador>` (spawn com
+  argv, sem shell). `server.ts` registra `POST /api/launch` e
+  `POST /api/launch/preview`, presentes só quando `execEnabled` — sob
+  `--no-exec`, requisição autenticada devolve `404`, não `403`.
+- Evidence: `tsc --noEmit` limpo; 15 testes passam, incluindo os novos de
+  `launcher.test.ts` (script wrapper, shellQuote, preview==launch) e o de
+  integração (preview compõe `claude`/`-p`/`/relay-session …`, launch devolve
+  runId, harness desconhecido → 400). `grep` por `exec(`, `shell: true`,
+  `sh -c`, `bash -c` em `relay-host/src` retorna vazio.
+- Criteria: A-001, A-005
+- Decisions: modo externo é o único lançamento nesta spec (o embutido é a spec
+  009); o emulador é detectado entre Terminal/iTerm/Ghostty/Warp no macOS e o
+  `open` é chamado com argv. O script É o argv, nunca `sh -c`.
+
+## 2026-09-07 - T-001 - Adaptador de harness: buildArgv e composePrompt
+- Backlog: B-014
+- Spec: .specs/20260907-008-preflight-e-lancamento.md
+- Result: `relay-host/src/harness.ts` ganhou `launchArgs` e `promptPrefix` por
+  harness e as duas funções separadas que a spec exige: `composePrompt(harness,
+  skill, intent)` (claude `/relay-session`, codex `⟨relay-session⟩`, opencode
+  `Use relay-session`) e `buildLaunchArgv(harness, skill, intent, cwd)`
+  devolvendo `{ bin, args, prompt, cwd }`. Nenhum prefixo contém `--skill`.
+- Evidence: `tsc --noEmit` limpo no relay-host; os três prefixos conferem com
+  o design system (seção 6) e com `docs/INSTALL.md` (opencode invoca skill por
+  linguagem natural, sem slash command).
+- Criteria: none
+- Decisions: o prompt composto é um único elemento de argv (o último), nunca
+  dividido em flag; `buildArgv` e `composePrompt` separados é o que torna
+  impossível reintroduzir a suposição do `--skill`.
+
 ## 2026-09-07 - T-001 - Contrato do estado derivado
 - Backlog: B-001
 - Spec: .specs/20260907-001-ui-primeiro-marco-visual.md

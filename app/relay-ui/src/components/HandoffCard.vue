@@ -3,17 +3,19 @@ import { computed } from 'vue'
 import type { Handoff } from '../types'
 import { formatAbsolute, formatRelative } from '../lib/relative-time'
 import {
-  HARNESS_FIXTURE,
+  allHarnesses,
   harnessById,
   harnessInitials,
   harnessTone,
   selection,
   openSelector,
 } from '../lib/harness'
+import { openPreflight } from '../lib/launch'
 
 const props = defineProps<{
   handoff: Handoff
   blocked: boolean
+  execEnabled: boolean
 }>()
 
 const sel = selection()
@@ -28,8 +30,12 @@ const activeHarness = computed(() => {
   const chosen = harnessById(sel.harnessId)
   if (chosen && chosen.state !== 'absent') return chosen
   if (writer.value && writer.value.state !== 'absent') return writer.value
-  return HARNESS_FIXTURE.find((h) => h.state !== 'absent') ?? writer.value ?? { id: props.handoff.harness, name: props.handoff.harness }
+  return allHarnesses().find((h) => h.state !== 'absent') ?? writer.value ?? { id: props.handoff.harness, name: props.handoff.harness }
 })
+
+function resume(): void {
+  openPreflight({ title: 'Retomar sessão', skill: 'relay-session', intent: 'Retomar sessão' })
+}
 </script>
 
 <template>
@@ -68,10 +74,10 @@ const activeHarness = computed(() => {
       </section>
     </div>
     <footer class="handoff-card__footer">
-      <button class="button button--primary">
+      <button v-if="execEnabled" class="button button--primary" @click="resume">
         ▶ Retomar {{ handoff.todoId }} no {{ activeHarness.name }}
       </button>
-      <button class="button button--secondary" @click="openSelector()">
+      <button v-if="execEnabled" class="button button--secondary" @click="openSelector()">
         Trocar harness
       </button>
       <span class="handoff-card__spec mono">{{ handoff.spec }}</span>

@@ -872,4 +872,128 @@ body {
 .preflight__actions {
   display: flex;
   justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.preflight__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.preflight__table th,
+.preflight__table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-width) solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  font-size: var(--size-command);
+}
+
+.preflight__table th {
+  color: var(--meta);
+  font-weight: var(--weight-meta);
+  white-space: nowrap;
+  width: 1%;
+}
+
+.preflight__table td {
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.preflight__warning {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--amber-line);
+  border-radius: var(--radius-2);
+  background: var(--amber-soft);
+  color: var(--amber);
+  font-size: var(--size-body-secondary);
+  line-height: var(--lh-body-secondary);
+}
+
+.preflight__error {
+  margin: 0;
+  color: var(--amber);
+  font-family: var(--font-mono);
+  font-size: var(--size-meta);
+}
+
+.preflight__actions .button--primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.choose {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.choose__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.choose__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--blue-line);
+  border-radius: var(--radius-2);
+  background: var(--panel-2);
+}
+
+.choose__id {
+  font-family: var(--font-mono);
+  font-size: var(--size-meta);
+  color: var(--blue);
+}
+
+.choose__text {
+  flex: 1;
+  font-size: var(--size-body);
+  color: var(--ink-2);
+}
+
+.choose__spec {
+  font-family: var(--font-mono);
+  font-size: var(--size-meta);
+  color: var(--meta);
+}
+
+.choose__action {
+  height: var(--control-height-sm);
+  padding: 0 var(--space-4);
+  font-size: var(--size-body-secondary);
+}
+
+.choose__interview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border: var(--border-width) dashed var(--line-2);
+  border-radius: var(--radius-3);
+}
+
+.choose__interview-title {
+  margin: 0;
+  font-size: var(--size-card-title);
+  font-weight: var(--weight-card-title);
+}
+
+.choose__interview-text {
+  margin: 0;
+  font-size: var(--size-body-secondary);
+  color: var(--ink-2);
+}
+
+.choose__interview .button {
+  align-self: flex-start;
 }

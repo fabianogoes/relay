@@ -5,6 +5,7 @@ import StatusPill from './StatusPill.vue'
 import {
   CONSENT_OPTIONS,
   HARNESS_FIXTURE,
+  allHarnesses,
   harnessById,
   harnessInitials,
   harnessTone,
@@ -27,7 +28,7 @@ const activeHarness = computed(() => {
   const handoff = props.payload.state.kind === 'ok' ? props.payload.state.handoff : null
   const writer = handoff ? harnessById(handoff.harness) : null
   if (writer && writer.state !== 'absent') return writer
-  return HARNESS_FIXTURE[0]
+  return allHarnesses()[0] ?? HARNESS_FIXTURE[0]
 })
 
 const activeInitials = computed(() => harnessInitials(activeHarness.value.name))

@@ -13,5 +13,5 @@
     "completed": 2,
     "total": 3
   },
-  "environment": { "workspace": "/Users/exemplo/relay", "execEnabled": false }
+  "environment": { "workspace": "/Users/exemplo/relay", "execEnabled": true }
 }

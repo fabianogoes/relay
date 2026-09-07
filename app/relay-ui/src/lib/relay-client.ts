@@ -117,3 +117,13 @@ export function apiGetJson<T>(path: string): Promise<T> {
 export function apiGetRaw(path: string): Promise<string> {
   return apiGetText(path)
 }
+
+export async function apiPostJson<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: { 'X-Relay-Token': token.value, 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json() as Promise<T>
+}

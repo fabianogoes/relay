@@ -4,6 +4,7 @@ import { readWorkspace } from './reader.ts'
 import { buildPayload } from './state.ts'
 import { listSpecs } from './specs.ts'
 import { detectHarnesses } from './harness.ts'
+import { launch, preview } from './launcher.ts'
 import { watchWorkspace } from './watcher.ts'
 import { createRelayServer, type RelayServer, type ServerDeps } from './server.ts'
 import type { Environment } from 'relay-core'
@@ -36,6 +37,16 @@ export function makeDeps(workspace: string, environment: Environment): ServerDep
     },
     harnesses() {
       return detectHarnesses()
+    },
+    launchPreview(request) {
+      try {
+        return preview(request, workspace)
+      } catch {
+        return null
+      }
+    },
+    launch(request) {
+      return launch(request, workspace)
     },
   }
 }

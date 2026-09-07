@@ -5,7 +5,8 @@ import { extname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { WebSocket, WebSocketServer } from 'ws'
 import type { UiPayload } from 'relay-core'
-import type { Harness } from './harness.ts'
+import type { Harness, LaunchPlan } from './harness.ts'
+import type { LaunchRequest, LaunchResult } from './launcher.ts'
 import type { SpecSummary } from './specs.ts'
 
 const UI_DIST = fileURLToPath(new URL('../../relay-ui/dist', import.meta.url))
@@ -29,6 +30,8 @@ export interface ServerDeps {
   changelog(): string
   spec(id: string): string | null
   harnesses(): Harness[]
+  launchPreview(request: LaunchRequest): LaunchPlan | null
+  launch(request: LaunchRequest): LaunchResult
 }
 
 export interface RelayServerOptions {
@@ -49,6 +52,32 @@ export interface RelayServer {
 function json(res: ServerResponse, status: number, body: unknown): void {
   res.writeHead(status, { 'content-type': 'application/json; charset=utf-8' })
   res.end(JSON.stringify(body))
+}
+
+function readJsonBody(req: IncomingMessage): Promise<Record<string, unknown>> {
+  return new Promise((resolve, reject) => {
+    let raw = ''
+    req.setEncoding('utf8')
+    req.on('data', (chunk) => {
+      raw += chunk
+      if (raw.length > 1024 * 1024) {
+        reject(new Error('corpo grande demais'))
+        req.destroy()
+      }
+    })
+    req.on('end', () => {
+      if (raw.length === 0) {
+        resolve({})
+        return
+      }
+      try {
+        resolve(JSON.parse(raw) as Record<string, unknown>)
+      } catch {
+        reject(new Error('corpo inválido'))
+      }
+    })
+    req.on('error', reject)
+  })
 }
 
 function text(res: ServerResponse, status: number, body: string): void {
@@ -129,7 +158,7 @@ export function createRelayServer(options: RelayServerOptions): Promise<RelaySer
     return req.headers['x-relay-token'] === token
   }
 
-  function handle(req: IncomingMessage, res: ServerResponse): void {
+  async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`)
     if (url.pathname === '/' && req.method === 'GET') {
       const ui = uiIndex({ workspace, execEnabled, token })
@@ -156,6 +185,42 @@ export function createRelayServer(options: RelayServerOptions): Promise<RelaySer
     if (!authed(req)) {
       res.writeHead(403)
       res.end()
+      return
+    }
+    if (url.pathname === '/api/launch' || url.pathname === '/api/launch/preview') {
+      if (!execEnabled) {
+        res.writeHead(404)
+        res.end()
+        return
+      }
+      if (req.method !== 'POST') {
+        res.writeHead(404)
+        res.end()
+        return
+      }
+      try {
+        const body = await readJsonBody(req)
+        const request: LaunchRequest = {
+          harness: String(body.harness ?? ''),
+          skill: body.skill === 'relay-spec' ? 'relay-spec' : 'relay-session',
+          intent: String(body.intent ?? ''),
+        }
+        if (url.pathname === '/api/launch/preview') {
+          const plan = deps.launchPreview(request)
+          if (plan === null) {
+            res.writeHead(400)
+            res.end()
+            return
+          }
+          json(res, 200, plan)
+          return
+        }
+        const result = deps.launch(request)
+        json(res, 200, result)
+      } catch {
+        res.writeHead(400)
+        res.end()
+      }
       return
     }
     if (req.method !== 'GET') {

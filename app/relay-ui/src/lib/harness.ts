@@ -1,4 +1,4 @@
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 
 export type HarnessState = 'installed' | 'unauthenticated' | 'absent'
 
@@ -68,9 +68,19 @@ export function harnessInitials(name: string): string {
     .toUpperCase()
 }
 
+const harnesses = ref<Harness[]>([...HARNESS_FIXTURE])
+
+export function setHarnesses(list: Harness[]): void {
+  harnesses.value = list.length > 0 ? list : [...HARNESS_FIXTURE]
+}
+
+export function allHarnesses(): Harness[] {
+  return harnesses.value
+}
+
 export function harnessById(id: string | null): Harness | null {
   if (!id) return null
-  return HARNESS_FIXTURE.find((h) => h.id === id) ?? null
+  return harnesses.value.find((h) => h.id === id) ?? null
 }
 
 function localStorageKey(workspace: string): string {

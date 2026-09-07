@@ -4,9 +4,10 @@ import Header from './components/Header.vue'
 import MainScreen from './components/MainScreen.vue'
 import WorkScreen from './components/WorkScreen.vue'
 import HarnessSelector from './components/HarnessSelector.vue'
-import { useRelayClient } from './lib/relay-client'
+import PreflightModal from './components/PreflightModal.vue'
+import { useRelayClient, apiGetJson } from './lib/relay-client'
 import { fixtures, fixtureNames } from './fixtures'
-import { initHarnessSelection } from './lib/harness'
+import { initHarnessSelection, setHarnesses, type Harness } from './lib/harness'
 
 const client = useRelayClient()
 const hasFixturesParam = new URLSearchParams(window.location.search).has('fixtures')
@@ -32,6 +33,11 @@ watch(
 
 onMounted(() => {
   if (client.hostMode && !hasFixturesParam) client.connect()
+  if (client.hostMode) {
+    apiGetJson<Harness[]>('/api/harnesses')
+      .then((list) => setHarnesses(list))
+      .catch(() => {})
+  }
 })
 </script>
 
@@ -56,6 +62,7 @@ onMounted(() => {
       <MainScreen v-if="view === 'agora'" :payload="payload" />
       <WorkScreen v-else :payload="payload" />
       <HarnessSelector :workspace="payload.environment.workspace" />
+      <PreflightModal :workspace="payload.environment.workspace" />
     </template>
   </div>
 </template>

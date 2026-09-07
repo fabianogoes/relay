@@ -5,6 +5,7 @@ import { createRelayServer, type ServerDeps } from '../src/server.ts'
 import { readWorkspace } from '../src/reader.ts'
 import { buildPayload } from '../src/state.ts'
 import { listSpecs } from '../src/specs.ts'
+import { preview } from '../src/launcher.ts'
 import { makeWorkspace } from '../support/workspace.ts'
 import { WebSocket } from 'ws'
 import type { UiPayload } from 'relay-core'
@@ -23,18 +24,35 @@ function makeDeps(workspace: string): ServerDeps {
     changelog: () => read().changelog,
     spec: (id) => read().specs[`.specs/${id}`] ?? null,
     harnesses: () => [{ id: 'test', name: 'Test', version: '1.0.0', state: 'installed' }],
+    launchPreview: (req) => {
+      try {
+        return preview(req, workspace)
+      } catch {
+        return null
+      }
+    },
+    launch: (req) => ({
+      runId: 'run-1',
+      scratchDir: workspace,
+      plan: preview(req, workspace),
+    }),
   }
 }
 
 async function request(
   base: string,
   path: string,
-  opts: { method?: string; token?: string; fetchSite?: string } = {},
+  opts: { method?: string; token?: string; fetchSite?: string; body?: unknown } = {},
 ): Promise<Response> {
   const headers: Record<string, string> = {}
   if (opts.token !== undefined) headers['x-relay-token'] = opts.token
   if (opts.fetchSite !== undefined) headers['sec-fetch-site'] = opts.fetchSite
-  return fetch(`${base}${path}`, { method: opts.method ?? 'GET', headers })
+  if (opts.body !== undefined) headers['content-type'] = 'application/json'
+  return fetch(`${base}${path}`, {
+    method: opts.method ?? 'GET',
+    headers,
+    body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+  })
 }
 
 test('server: bind em 127.0.0.1, porta efêmera', async () => {
@@ -134,13 +152,41 @@ test('API com token e same-origin devolve dado', async () => {
   }
 })
 
-test('rota de lançamento não existe: POST /api/launch autenticado é 404, não 403', async () => {
+test('rota de lançamento: POST /api/launch/preview compõe o plano, sem shell', async () => {
   const ws = makeWorkspace()
   const server = await createRelayServer({ workspace: ws.dir, execEnabled: true, token: TOKEN, deps: makeDeps(ws.dir) })
   const base = `http://127.0.0.1:${server.port}`
   try {
-    const res = await request(base, '/api/launch', { method: 'POST', token: TOKEN, fetchSite: 'same-origin' })
-    assert.equal(res.status, 404)
+    const res = await request(base, '/api/launch/preview', {
+      method: 'POST',
+      token: TOKEN,
+      fetchSite: 'same-origin',
+      body: { harness: 'claude-code', skill: 'relay-session', intent: 'Retomar sessão' },
+    })
+    assert.equal(res.status, 200)
+    const plan = (await res.json()) as { bin: string; args: string[]; prompt: string; cwd: string }
+    assert.equal(plan.bin, 'claude')
+    assert.deepEqual(plan.args, ['-p'])
+    assert.equal(plan.prompt, '/relay-session Retomar sessão')
+    assert.equal(plan.cwd, ws.dir)
+
+    const launch = await request(base, '/api/launch', {
+      method: 'POST',
+      token: TOKEN,
+      fetchSite: 'same-origin',
+      body: { harness: 'codex', skill: 'relay-spec', intent: 'Especificar uma ideia' },
+    })
+    assert.equal(launch.status, 200)
+    const result = (await launch.json()) as { runId: string }
+    assert.equal(result.runId, 'run-1')
+
+    const bad = await request(base, '/api/launch/preview', {
+      method: 'POST',
+      token: TOKEN,
+      fetchSite: 'same-origin',
+      body: { harness: 'nao-existe', skill: 'relay-session', intent: 'x' },
+    })
+    assert.equal(bad.status, 400)
   } finally {
     await server.close()
     ws.cleanup()
