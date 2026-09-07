@@ -17,11 +17,7 @@ summary that drifts from its source is worse than a pointer to it.
 | `docs/adr/NNNN-*.md` | Before making or revisiting an architectural decision. Index below. |
 | `docs/INSTALL.md` | When changing installation for Claude Code, Codex, or OpenCode. |
 | `README.md` | When changing what Relay claims to do or how it is explained. |
-| `docs/ds/claude-ui-proposal.md` | Only for UI analysis an ADR deliberately left out, such as the UI/UX critique. |
-
-Never open `docs/ds/claude-design-prototype-*.html`. They are about 350 KB
-each and would consume most of a context window. What was decided from them is
-in ADR-0001; what was merely observed is in `docs/ds/claude-ui-proposal.md`.
+| `docs/design-system/` | Before any UI change. The folder carries its own `AGENTS.md` with the reading order and the rule that its `.html` files are never read by an agent; the `relay-design-system` skill carries the same rules and fires on intent. Start at its `README.md`. |
 
 ## Architecture decisions
 
@@ -54,6 +50,8 @@ not only the choice.
   harness, but only Relay skills mutate the five protocol records. If a client
   cannot derive a state it needs, change the protocol rather than adding a
   private write.
+- `.agents/`, `.claude/`, and `.opencode/plugin/` are tooling for developing
+  *this* repository, never package surface: the manifests ship `./skills/` only.
 
 ## Development rules
 
@@ -66,7 +64,7 @@ not only the choice.
 - Keep installation guidance aligned across Claude Code, Codex, and OpenCode.
 - Keep each document in its layer: the contract in `docs/PROTOCOL.md`,
   decisions and their reasoning in `docs/adr/`, exploratory analysis in
-  `docs/ds/`. Do not copy content between layers.
+  `docs/design-system/`. Do not copy content between layers.
 - The package surface is English: `README.md`, `docs/PROTOCOL.md`,
   `docs/INSTALL.md`, and the skills. ADRs and design analysis are currently
   written in Portuguese; keep each document in the language it already uses.
