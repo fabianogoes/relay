@@ -38,7 +38,7 @@ não tem resposta, e o caso que a expõe é o pior possível: o `inconsistent`. 
 leitores independentes podem divergir, e divergência ali trava o trabalho ou o
 deixa passar indevidamente.
 
-Insumo analítico completo: [`../ds/claude-ui-proposal.md`](../ds/claude-ui-proposal.md).
+Insumo analítico completo: [`../design-system/ui-proposal.md`](../design-system/ui-proposal.md).
 
 ## Decisão
 
@@ -206,7 +206,7 @@ Critérios objetivos, verificáveis, no espírito de fitness function:
 
 ## Notas
 
-**Origem.** Extraída de [`../ds/claude-ui-proposal.md`](../ds/claude-ui-proposal.md),
+**Origem.** Extraída de [`../design-system/ui-proposal.md`](../design-system/ui-proposal.md),
 que permanece no repositório como insumo analítico, junto dos dois protótipos.
 Esta ADR registra apenas o que foi decidido; a proposta registra também o que
 foi observado e descartado.

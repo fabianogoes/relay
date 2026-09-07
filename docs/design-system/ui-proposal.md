@@ -3,9 +3,9 @@
 **Data:** 2026-09-05
 **Autor:** Claude Code
 **Protótipo vigente:**
-[`claude-design-prototype-v2.html`](claude-design-prototype-v2.html)
+[`claude-design-prototype-v2.html`](prototypes/claude-design-prototype-v2.html)
 **Insumo histórico analisado:**
-[`claude-design-prototype-v1.html`](claude-design-prototype-v1.html)
+[`claude-design-prototype-v1.html`](prototypes/claude-design-prototype-v1.html)
 
 Este documento consolida a análise do primeiro protótipo e a proposta que
 orientou sua revisão. O v2 é a versão final vigente; o v1 permanece no

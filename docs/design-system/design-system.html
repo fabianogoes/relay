@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design System do Relay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* cor */
+    --bg: #0b0d10;
+    --bg-deep: #070a0d;
+    --panel: #0f1318;
+    --panel-2: #151a21;
+    --raise: #1a2028;
+    --ink: #e9edf3;
+    --ink-2: #c6cfda;
+    --meta: #9ba6b4;
+    --line: rgba(255,255,255,.10);
+    --line-2: rgba(255,255,255,.16);
+    --green: #5fe3b3;      --green-soft: rgba(95,227,179,.10);  --green-line: rgba(95,227,179,.34);
+    --amber: #f7cd7a;      --amber-soft: rgba(247,205,122,.10); --amber-line: rgba(247,205,122,.36);
+    --blue: #93baff;       --blue-soft: rgba(147,186,255,.10);  --blue-line: rgba(147,186,255,.32);
+    --purple: #cfaaff;     --purple-soft: rgba(207,170,255,.10);--purple-line: rgba(207,170,255,.32);
+    --on-green: #05231a;
+    /* tipografia */
+    --sans: 'Space Grotesk', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+    /* espacamento */
+    --space-1: 4px; --space-2: 8px; --space-3: 12px;
+    --space-4: 16px; --space-5: 20px; --space-6: 24px; --space-8: 32px;
+    /* raio */
+    --radius-1: 8px; --radius-2: 10px; --radius-3: 12px;
+    /* sombra */
+    --shadow-card: 0 1px 4px rgba(0,0,0,.12);
+    --shadow-modal: 0 30px 90px rgba(0,0,0,.65);
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-font-smoothing: antialiased; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 400 14px/1.5 var(--sans);
+  }
+  .app { max-width: 1280px; margin: 0 auto; padding: var(--space-8) var(--space-8) 80px; }
+
+  /* ---------- header ---------- */
+  .header {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--line); border-radius: var(--radius-3);
+    background: var(--panel); margin-bottom: var(--space-6);
+  }
+  .logo { font: 600 18px var(--sans); letter-spacing: -.2px; }
+  .header .spacer { flex: 1; }
+
+  /* ---------- secoes ---------- */
+  section { margin-top: var(--space-8); }
+  .section-title {
+    font: 600 22px/1.25 var(--sans); letter-spacing: -.3px;
+    margin: 0 0 var(--space-2);
+  }
+  .section-sub { color: var(--meta); font: 400 13px/1.5 var(--sans); margin: 0 0 var(--space-4); }
+  .grid { display: grid; gap: var(--space-4); }
+  .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 900px) { .grid.cols-2, .grid.cols-3 { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius-3); padding: var(--space-4);
+    box-shadow: var(--shadow-card);
+  }
+  .card h3 { font: 600 15px/1.4 var(--sans); margin: 0 0 var(--space-2); }
+  .card .desc { color: var(--meta); font: 400 12px/1.5 var(--mono); margin: 0 0 var(--space-4); }
+  .card .token { color: var(--green); }
+  .swatch-row { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2); }
+  .swatch {
+    width: 56px; height: 36px; border-radius: var(--radius-1);
+    border: 1px solid var(--line-2); flex: none;
+  }
+  .swatch-name { font: 500 12px var(--mono); color: var(--ink-2); min-width: 150px; }
+  .swatch-val { font: 400 12px var(--mono); color: var(--meta); }
+
+  /* ---------- tipografia ---------- */
+  .type-row {
+    display: flex; align-items: baseline; gap: var(--space-4);
+    padding: var(--space-2) 0; border-bottom: 1px solid var(--line);
+  }
+  .type-row .label { font: 400 12px var(--mono); color: var(--meta); min-width: 220px; flex: none; }
+  .type-row .sample { color: var(--ink); }
+  .type-mono { font-family: var(--mono); }
+
+  /* ---------- status pill ---------- */
+  .status-pill {
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    padding: 3px 10px; border-radius: 999px; border: 1px solid;
+    font: 500 12px var(--mono);
+  }
+  .status-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .pill-green    { color: var(--green);  background: var(--green-soft);  border-color: var(--green-line); }
+  .pill-amber    { color: var(--amber);  background: var(--amber-soft);  border-color: var(--amber-line); }
+  .pill-blue     { color: var(--blue);   background: var(--blue-soft);   border-color: var(--blue-line); }
+  .pill-purple   { color: var(--purple); background: var(--purple-soft); border-color: var(--purple-line); }
+  .pill-idle     { color: var(--meta);   background: transparent;        border-color: var(--line); }
+
+  /* ---------- botoes ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+    height: 36px; padding: 0 var(--space-4);
+    border-radius: var(--radius-2); border: 1px solid transparent;
+    font: 500 14px var(--sans); cursor: pointer; text-decoration: none;
+  }
+  .btn-primary { background: var(--green); color: var(--on-green); }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-secondary { background: none; color: var(--ink); border-color: var(--line-2); }
+  .btn-secondary:hover { background: var(--raise); }
+  .btn-danger { background: var(--amber-soft); color: var(--amber); border-color: var(--amber-line); }
+  .btn-danger:hover { background: rgba(247,205,122,.18); }
+  .btn-sm { height: 32px; padding: 0 var(--space-3); font-size: 13px; }
+
+  /* ---------- handoff card ---------- */
+  .handoff-card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius-3); padding: var(--space-6);
+    box-shadow: var(--shadow-card); max-width: 640px;
+  }
+  .hc-provenance {
+    display: flex; align-items: center; gap: var(--space-2);
+    font: 400 12px var(--mono); color: var(--meta); margin-bottom: var(--space-4);
+  }
+  .hc-provenance .harness { color: var(--purple); }
+  .hc-objective { font: 500 20px/1.35 var(--sans); letter-spacing: -.3px; margin: 0 0 var(--space-3); }
+  .hc-next {
+    font: 400 14px/1.55 var(--sans); color: var(--ink-2);
+    border-left: 3px solid var(--green-line); padding-left: var(--space-3);
+    margin: 0 0 var(--space-5);
+  }
+  .hc-meta { display: flex; gap: var(--space-4); font: 400 12px var(--mono); color: var(--meta); margin-bottom: var(--space-5); }
+
+  /* ---------- preflight modal ---------- */
+  .modal-overlay {
+    background: var(--bg-deep); border: 1px solid var(--line-2);
+    border-radius: var(--radius-3); padding: var(--space-5);
+    box-shadow: var(--shadow-modal); max-width: 640px;
+  }
+  .modal-title { font: 600 16px/1.4 var(--sans); margin: 0 0 var(--space-3); }
+  .argv {
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: var(--radius-2); padding: var(--space-3);
+    font: 400 13px/1.6 var(--mono); overflow-x: auto; white-space: nowrap;
+    margin-bottom: var(--space-4);
+  }
+  .argv .arg { color: var(--green); }
+  .argv .sep { color: var(--meta); }
+  .modal-row { display: flex; gap: var(--space-3); font: 400 12px var(--mono); color: var(--meta); margin-bottom: var(--space-4); }
+  .modal-row b { color: var(--ink-2); font-weight: 500; }
+
+  /* ---------- gravado em disco ---------- */
+  .disk-log { font: 400 13px/1.55 var(--mono); }
+  .disk-item {
+    display: flex; align-items: baseline; gap: var(--space-3);
+    padding: var(--space-3) 0; border-bottom: 1px solid var(--line);
+  }
+  .disk-item .path { color: var(--ink-2); flex: 1; }
+  .disk-item .before { color: var(--meta); text-decoration: line-through; }
+  .disk-item .arrow { color: var(--meta); }
+  .disk-item .after { color: var(--green); }
+  .disk-footnote { color: var(--meta); font: 400 12px/1.5 var(--mono); margin-top: var(--space-3); }
+
+  /* ---------- harness list ---------- */
+  .harness-item {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: var(--space-3); border: 1px solid var(--line);
+    border-radius: var(--radius-2); background: var(--panel);
+    margin-bottom: var(--space-2);
+  }
+  .harness-item .name { font: 500 14px var(--sans); }
+  .harness-item .ver { font: 400 12px var(--mono); color: var(--meta); }
+  .harness-item .state { margin-left: auto; }
+
+  /* ---------- empty state ---------- */
+  .empty {
+    border: 1px dashed var(--line-2); border-radius: var(--radius-3);
+    padding: var(--space-8); text-align: center; color: var(--meta);
+  }
+  .empty .title { font: 500 16px/1.4 var(--sans); color: var(--ink-2); margin: 0 0 var(--space-2); }
+  .empty p { margin: 0; font: 400 13px/1.5 var(--sans); }
+
+  /* ---------- terminal ---------- */
+  .terminal {
+    background: var(--bg-deep); border: 1px solid var(--line);
+    border-radius: var(--radius-2); overflow: hidden; font: 400 13px/1.6 var(--mono);
+  }
+  .term-bar {
+    display: flex; align-items: center; gap: var(--space-2);
+    padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--line);
+    background: var(--panel);
+  }
+  .term-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .term-dot.red { background: var(--amber); }
+  .term-dot.green { background: var(--green); }
+  .term-title { font: 400 12px var(--mono); color: var(--meta); margin-left: var(--space-2); }
+  .term-body { padding: var(--space-3); }
+  .term-body .out { color: var(--ink-2); }
+  .term-body .prompt { color: var(--green); }
+  .term-cursor { display: inline-block; width: 7px; height: 14px; background: var(--ink); vertical-align: middle; }
+  .term-note { color: var(--meta); font: 400 12px var(--mono); margin-top: var(--space-2); }
+
+  footer { margin-top: var(--space-8); color: var(--meta); font: 400 12px/1.6 var(--mono); border-top: 1px solid var(--line); padding-top: var(--space-4); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- header -->
+  <div class="header">
+    <span class="logo">Relay</span>
+    <span style="color:var(--meta);font:400 12px var(--mono)">Design System</span>
+    <div class="spacer"></div>
+    <span class="status-pill pill-green"><span class="dot"></span>in_progress</span>
+  </div>
+
+  <!-- tokens de cor -->
+  <section id="cor">
+    <h2 class="section-title">Tokens de cor</h2>
+    <p class="section-sub">Tema escuro fixado. Acentos com três variantes: tinta, fundo suave e linha.</p>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <h3>Neutros</h3>
+        <div class="swatch-row"><span class="swatch" style="background:#070a0d"></span><span class="swatch-name">--bg-deep</span><span class="swatch-val">#070a0d</span></div>
+        <div class="swatch-row"><span class="swatch" style="background:#0b0d10"></span><span class="swatch-name">--bg</span><span class="swatch-val">#0b0d10</span></div>
+        <div class="swatch-row"><span class="swatch" style="background:#0f1318"></span><span class="swatch-name">--panel</span><span class="swatch-val">#0f1318</span></div>
+        <div class="swatch-row"><span class="swatch" style="background:#151a21"></span><span class="swatch-name">--panel-2</span><span class="swatch-val">#151a21</span></div>
+        <div class="swatch-row"><span class="swatch" style="background:#1a2028"></span><span class="swatch-name">--raise</span><span class="swatch-val">#1a2028</span></div>
+      </div>
+      <div class="card">
+        <h3>Texto e linhas</h3>
+        <div class="swatch-row"><span class="swatch" style="background:#e9edf3"></span><span class="swatch-name">--ink</span><span class="swatch-val">#e9edf3</span></div>
+        <div class="swatch-row"><span class="swatch" style="background:#c6cfda"></span><span class="swatch-name">--ink-2</span><span class="swatch-val">#c6cfda</span></div>
+        <div class="swatch-row"><span class="swatch" style="background:#9ba6b4"></span><span class="swatch-name">--meta</span><span class="swatch-val">#9ba6b4 · ≈7:1 AA</span></div>
+        <div class="swatch-row"><span class="swatch" style="background:rgba(255,255,255,.10)"></span><span class="swatch-name">--line</span><span class="swatch-val">rgba(255,255,255,.10)</span></div>
+        <div class="swatch-row"><span class="swatch" style="background:rgba(255,255,255,.16)"></span><span class="swatch-name">--line-2</span><span class="swatch-val">rgba(255,255,255,.16)</span></div>
+      </div>
+      <div class="card">
+        <h3>Acentos</h3>
+        <div class="swatch-row"><span class="swatch" style="background:#5fe3b3"></span><span class="swatch-name">--green</span><span class="swatch-val">#5fe3b3 · in_progress</span></div>
+        <div class="swatch-row"><span class="swatch" style="background:#f7cd7a"></span><span class="swatch-name">--amber</span><span class="swatch-val">#f7cd7a · blocked/inconsistent</span></div>
+        <div class="swatch-row"><span class="swatch" style="background:#93baff"></span><span class="swatch-name">--blue</span><span class="swatch-val">#93baff · ready/backlog</span></div>
+        <div class="swatch-row"><span class="swatch" style="background:#cfaaff"></span><span class="swatch-name">--purple</span><span class="swatch-val">#cfaaff · harness</span></div>
+        <div class="swatch-row"><span class="swatch" style="background:#05231a;border-color:var(--green-line)"></span><span class="swatch-name">--on-green</span><span class="swatch-val">#05231a</span></div>
+      </div>
+      <div class="card">
+        <h3>Proibidos</h3>
+        <p style="color:var(--meta);font:400 13px/1.6 var(--sans);margin:0 0 var(--space-3)">
+          Cinzas do protótipo v1 — não atingem AA e carregam informação real. Não usar.
+        </p>
+        <div class="swatch-row"><span class="swatch" style="background:#4a5462"></span><span class="swatch-name">#4a5462</span><span class="swatch-val">≈2,4:1 · falha AA</span></div>
+        <div class="swatch-row"><span class="swatch" style="background:#5d6675"></span><span class="swatch-name">#5d6675</span><span class="swatch-val">≈3,2:1 · falha AA</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- tipografia -->
+  <section id="tipografia">
+    <h2 class="section-title">Tipografia</h2>
+    <p class="section-sub">Space Grotesk (sans) + JetBrains Mono (mono). Corpo em 14 px, metadados em 12 px, títulos operacionais em 16 px.</p>
+    <div class="card">
+      <div class="type-row"><span class="label">display · sans 600 · 26/1.2</span><span class="sample" style="font:600 26px/1.2 var(--sans)">Handoff do Relay</span></div>
+      <div class="type-row"><span class="label">título de seção · sans 600 · 22/1.25</span><span class="sample" style="font:600 22px/1.25 var(--sans)">Retomar T-002 no Codex</span></div>
+      <div class="type-row"><span class="label">subtítulo · sans 600 · 20/1.35</span><span class="sample" style="font:600 20px/1.35 var(--sans)">Escolher o que começar</span></div>
+      <div class="type-row"><span class="label">título operacional · sans 600 · 16/1.4</span><span class="sample" style="font:600 16px/1.4 var(--sans)">Harness deste workspace</span></div>
+      <div class="type-row"><span class="label">título de cartão · sans 600 · 15/1.4</span><span class="sample" style="font:600 15px/1.4 var(--sans)">Especificar uma nova ideia</span></div>
+      <div class="type-row"><span class="label">corpo · sans 400 · 14/1.5</span><span class="sample">A memória está no disco, não no chat.</span></div>
+      <div class="type-row"><span class="label">corpo destaque · sans 500 · 14/1.5</span><span class="sample" style="font-weight:500">O estado vem dos arquivos, nunca do stdout.</span></div>
+      <div class="type-row"><span class="label">corpo secundário · sans 400 · 13/1.5</span><span class="sample" style="color:var(--ink-2)">Escrito no Claude Code · há 14 horas</span></div>
+      <div class="type-row"><span class="label">metadados · mono 500 · 12</span><span class="sample type-mono" style="color:var(--meta)">.specs/20260905-001-migracao.md</span></div>
+      <div class="type-row"><span class="label">comando · mono 400 · 13/1.6</span><span class="sample type-mono" style="color:var(--green)">codex exec --skill relay-status "resumo"</span></div>
+    </div>
+  </section>
+
+  <!-- status -->
+  <section id="status">
+    <h2 class="section-title">Status → tom</h2>
+    <p class="section-sub">Todo marcador combina tom + rótulo textual. Estado nunca é comunicado só por cor.</p>
+    <div class="grid cols-3">
+      <div class="card"><h3>in_progress</h3><p class="desc">ação primária: retomar</p><span class="status-pill pill-green"><span class="dot"></span>in_progress</span></div>
+      <div class="card"><h3>blocked</h3><p class="desc">requer Context com o bloqueio</p><span class="status-pill pill-amber"><span class="dot"></span>blocked</span></div>
+      <div class="card"><h3>inconsistent</h3><p class="desc">tela de reparo dura; restringe o resto</p><span class="status-pill pill-amber"><span class="dot"></span>inconsistent</span></div>
+      <div class="card"><h3>ready</h3><p class="desc">selecionável</p><span class="status-pill pill-blue"><span class="dot"></span>ready</span></div>
+      <div class="card"><h3>backlog</h3><p class="desc">independentemente selecionável</p><span class="status-pill pill-blue"><span class="dot"></span>backlog</span></div>
+      <div class="card"><h3>idle</h3><p class="desc">fundo transparente, linha --line</p><span class="status-pill pill-idle"><span class="dot"></span>idle</span></div>
+      <div class="card"><h3>done</h3><p class="desc">conclusão</p><span class="status-pill pill-green"><span class="dot"></span>done</span></div>
+      <div class="card"><h3>harness</h3><p class="desc">identidade (não status do protocolo)</p><span class="status-pill pill-purple"><span class="dot"></span>codex</span></div>
+    </div>
+  </section>
+
+  <!-- botoes -->
+  <section id="botoes">
+    <h2 class="section-title">Botões</h2>
+    <p class="section-sub">Uma ação primária por tela. Altura de controle: 32 a 36 px.</p>
+    <div class="card">
+      <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;align-items:center">
+        <button class="btn btn-primary">▶ Retomar T-002 no Codex</button>
+        <button class="btn btn-secondary">Ver specs e backlog</button>
+        <button class="btn btn-danger">Ver conflito e correção</button>
+        <button class="btn btn-secondary btn-sm">Modo externo</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- handoff card -->
+  <section id="handoff">
+    <h2 class="section-title">HandoffCard — o produto</h2>
+    <p class="section-sub">Maior elemento da tela principal. Proveniência no cabeçalho, objetivo e próximo passo legíveis, um botão primário.</p>
+    <div class="handoff-card">
+      <div class="hc-provenance">
+        <span>Escrito no</span><span class="harness">Claude Code</span><span>· há 14 horas</span>
+      </div>
+      <h1 class="hc-objective">Migrar a derivação de estado para relay-core</h1>
+      <p class="hc-next"><strong>Próximo passo:</strong> implementar o parser dos cinco registros como módulo puro, sem I/O, com testes.</p>
+      <div class="hc-meta">
+        <span class="status-pill pill-green"><span class="dot"></span>in_progress</span>
+        <span>T-001</span><span>B-001</span><span>.specs/20260905-001-relay-core.md</span>
+      </div>
+      <button class="btn btn-primary">▶ Retomar T-001 no Codex</button>
+    </div>
+  </section>
+
+  <!-- preflight -->
+  <section id="preflight">
+    <h2 class="section-title">PreflightModal — preflight honesto</h2>
+    <p class="section-sub">argv elemento por elemento, nunca concatenado. Preferência não é autorização; o preflight continua obrigatório.</p>
+    <div class="modal-overlay">
+      <h2 class="modal-title">Executar no harness</h2>
+      <div class="modal-row">
+        <b>Harness:</b><span>codex v0.52.1 · autenticado</span>
+        <b style="margin-left:var(--space-4)">Workspace:</b><span>~/Developer/relay</span>
+      </div>
+      <div class="argv">
+        <span class="arg">"codex"</span> <span class="sep">→</span> <span class="arg">"exec"</span> <span class="sep">→</span>
+        <span class="arg">"--skill"</span> <span class="sep">→</span> <span class="arg">"relay-continue"</span> <span class="sep">→</span>
+        <span class="arg">"continua a subtarefa T-001; o prompt contém \"aspas\" e $var"</span>
+      </div>
+      <div style="display:flex;gap:var(--space-3);justify-content:flex-end">
+        <button class="btn btn-secondary">Cancelar</button>
+        <button class="btn btn-primary">Confirmar e executar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- gravado em disco -->
+  <section id="disco">
+    <h2 class="section-title">Painel "Gravado em disco"</h2>
+    <p class="section-sub">Fechamento de toda execução. O app não escreveu nada disto; a skill escreveu.</p>
+    <div class="card">
+      <div class="disk-log">
+        <div class="disk-item"><span class="path">.orchestration/handoff.md</span><span class="before">Status: in_progress</span><span class="arrow">→</span><span class="after">Status: done</span></div>
+        <div class="disk-item"><span class="path">.orchestration/handoff.md</span><span class="before">Harness: claude-code</span><span class="arrow">→</span><span class="after">Harness: codex</span></div>
+        <div class="disk-item"><span class="path">.orchestration/handoff.md</span><span class="before">Updated: 2026-09-05T23:41:00-03:00</span><span class="arrow">→</span><span class="after">Updated: 2026-09-06T02:41:00-03:00</span></div>
+        <div class="disk-item"><span class="path">.orchestration/changelog.md</span><span class="before">(novo)</span><span class="arrow">→</span><span class="after">+ T-001 concluída · B-001</span></div>
+        <div class="disk-item"><span class="path">.orchestration/TODO.md</span><span class="before">- [•] T-001</span><span class="arrow">→</span><span class="after">- [x] T-001</span></div>
+      </div>
+      <p class="disk-footnote">o app não escreveu nada disto; a skill escreveu.</p>
+    </div>
+  </section>
+
+  <!-- terminal -->
+  <section id="terminal">
+    <h2 class="section-title">Terminal</h2>
+    <p class="section-sub">Embutido (xterm.js) ou externo (script wrapper). Fechar desanexa; reabrir reanexa com replay.</p>
+    <div style="display:grid;gap:var(--space-4);grid-template-columns:1fr 1fr">
+      <div>
+        <div class="terminal">
+          <div class="term-bar">
+            <span class="term-dot red"></span><span class="term-dot green"></span>
+            <span class="term-title">relay · t-001 · codex</span>
+          </div>
+          <div class="term-body">
+            <span class="prompt">$</span> <span class="out">codex exec --skill relay-continue ...</span><br>
+            <span class="out">analisando estado do workspace…</span><br>
+            <span class="out">handoff encontrado: T-001 · B-001 · in_progress</span><br>
+            <span class="prompt">$</span> <span class="term-cursor"></span>
+          </div>
+        </div>
+        <p class="term-note">alt-screen, mouse tracking e bracketed paste habilitados · scrollback por run no host</p>
+      </div>
+      <div class="card">
+        <h3>Externo</h3>
+        <p style="color:var(--meta);font:400 13px/1.6 var(--sans)">O host escreve o script wrapper e pede ao emulador que o abra. O script é o contrato, não a linha de comando.</p>
+        <div class="argv" style="margin-bottom:0"><span class="arg">echo $$ &gt; "$RUN/pid"</span><br><span class="arg">"&lt;bin&gt;" "&lt;argv...&gt;"</span><br><span class="arg">echo $? &gt; "$RUN/exit"</span></div>
+        <p style="color:var(--meta);font:400 12px var(--mono);margin:var(--space-3) 0 0">PID e exit code vêm do próprio script, não do emulador.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- harnesses -->
+  <section id="harnesses">
+    <h2 class="section-title">Lista de harnesses</h2>
+    <p class="section-sub">"Instalado mas não autenticado" é um estado distinto de "não instalado".</p>
+    <div style="max-width:640px">
+      <div class="harness-item"><span class="name">Codex</span><span class="ver">v0.52.1</span><span class="state"><span class="status-pill pill-green"><span class="dot"></span>autenticado</span></span></div>
+      <div class="harness-item"><span class="name">Claude Code</span><span class="ver">v2.1.4</span><span class="state"><span class="status-pill pill-amber"><span class="dot"></span>não autenticado</span></span></div>
+      <div class="harness-item"><span class="name">OpenCode</span><span class="ver">não instalado</span><span class="state"><span class="status-pill pill-idle"><span class="dot"></span>ausente</span></span></div>
+    </div>
+  </section>
+
+  <!-- empty states -->
+  <section id="vazio">
+    <h2 class="section-title">Empty states</h2>
+    <p class="section-sub">Nunca um painel vazio sem explicação.</p>
+    <div class="empty">
+      <h3 class="title">Nenhum handoff ativo</h3>
+      <p>Nenhum trabalho em andamento neste repositório. Escolha uma entrada do backlog para começar.</p>
+    </div>
+  </section>
+
+  <footer>
+    Design System do Relay · fonte de autoridade: docs/design-system/README.md · referência histórica: ui-proposal.md e protótipos.
+    <br>Regra invariante: a aplicação lê, deriva e lança; nunca escreve nos registros do protocolo.
+  </footer>
+
+</div>
+</body>
+</html>
