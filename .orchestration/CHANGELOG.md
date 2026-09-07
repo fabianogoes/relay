@@ -35,3 +35,40 @@
 - Result: ADR-0003 registrada no indice de ADRs do AGENTS.md.
 - Evidence: o indice lista 0001, 0002 e 0003; o arquivo referenciado existe.
 - Decisions: nenhuma.
+
+## 2026-09-07 - T-001 - ADR-0004 da fronteira do app/
+- Backlog: B-002
+- Spec: .specs/20260907-001-ui-primeiro-marco-visual.md
+- Result: ADR-0004 escrita com seis decisoes: contencao num unico diretorio,
+  sem package.json na raiz, sem passo de build obrigatorio, instrucoes proprias
+  da pasta, a terceira camada declarada (superficie de pacote / produto /
+  ferramenta deste repo), e a proibicao de escrever nos cinco registros.
+- Evidence: seis secoes obrigatorias do formato de ADR presentes; a decisao 3
+  registra explicitamente que trata de obrigatoriedade e nao de veto ao
+  framework, para nao prejulgar a ADR-0005.
+- Decisions: a estrutura fica separada do framework porque sobrevive a troca
+  dele; a ADR-0005 pode revisar apenas a decisao 3.
+
+## 2026-09-07 - T-002 - Estrutura criada e garantias verificadas
+- Backlog: B-002
+- Spec: .specs/20260907-001-ui-primeiro-marco-visual.md
+- Result: criados app/package.json (private, workspaces relay-*), app/AGENTS.md
+  e o symlink app/CLAUDE.md. relay-ui/ nao foi criado: diretorio vazio nao e
+  versionavel e nasce em B-004, com conteudo.
+- Evidence: as seis conformidades da ADR-0004 verificadas por comando, nao por
+  leitura. Num clone limpo com rm -rf app/: skills intactas, manifestos
+  intactos, symlinks de skill resolvendo, guarda ainda executavel. app/CLAUDE.md
+  gravado com modo 120000. Nenhum arquivo fora de app/ resolve caminho para
+  dentro dele.
+- Decisions: a Conformidade 3 estava imprecisa — dizia "depende" e o teste
+  pegou mencoes em prosa. Reescrita para "resolve um caminho": link, import,
+  symlink, manifesto ou script. Prosa que cita app/ nao e dependencia.
+
+## 2026-09-07 - T-003 - ADR-0004 no indice e ponteiro no roteador
+- Backlog: B-002
+- Spec: .specs/20260907-001-ui-primeiro-marco-visual.md
+- Result: ADR-0004 registrada no indice de ADRs e uma linha acrescentada a
+  tabela de roteamento do AGENTS.md apontando para app/.
+- Evidence: indice lista 0001 a 0004; a tabela ganhou exatamente uma linha; o
+  arquivo referenciado existe.
+- Decisions: nenhuma.

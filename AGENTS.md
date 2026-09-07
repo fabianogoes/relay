@@ -21,6 +21,7 @@ summary that drifts from its source is worse than a pointer to it.
 | `docs/adr/NNNN-*.md` | Before making or revisiting an architectural decision. Index below. |
 | `docs/INSTALL.md` | When changing installation for Claude Code, Codex, or OpenCode. |
 | `README.md` | When changing what Relay claims to do or how it is explained. |
+| `app/` | Before touching the interface. The folder carries its own `AGENTS.md`; its boundary is ADR-0004 and the data crossing it is ADR-0003. |
 | `docs/design-system/` | Before any UI change. The folder carries its own `AGENTS.md` with the reading order and the rule that its `.html` files are never read by an agent; the `relay-design-system` skill carries the same rules and fires on intent. Start at its `README.md`. |
 
 ## Architecture decisions
@@ -40,6 +41,11 @@ not only the choice.
   loopback HTTP and WebSocket, TypeScript throughout, browser UI with the
   application shell deferred, and the rule that the application never writes a
   protocol record.
+- `docs/adr/0004-fronteira-e-estrutura-do-app.md` — Accepted — where the UI
+  lives and what it may not do: everything under `app/`, no root `package.json`,
+  no mandatory build step, the folder carrying its own instructions, and a third
+  layer declared — package surface, product, repository tooling — so the UI is
+  never shipped to someone who only wanted the skills.
 - `docs/adr/0003-contrato-do-estado-derivado.md` — Accepted — the derived-state
   contract between `relay-core` and `relay-ui`: content in and state out with no
   disk access, `inconsistent` as a separate shape rather than another status,

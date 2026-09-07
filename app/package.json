@@ -1,0 +1,8 @@
+{
+  "name": "relay-app",
+  "private": true,
+  "workspaces": ["relay-*"],
+  "engines": {
+    "node": ">=24"
+  }
+}
