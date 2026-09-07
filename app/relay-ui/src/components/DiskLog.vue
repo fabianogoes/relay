@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { DiskEntry } from '../lib/execution'
+import { formatRelative } from '../lib/relative-time'
 
 const props = defineProps<{ entries: ReadonlyArray<DiskEntry> }>()
 
 const reversed = computed(() => [...props.entries].reverse())
 
 function timeShort(at: string): string {
-  return at
+  return formatRelative(at)
 }
 </script>
 

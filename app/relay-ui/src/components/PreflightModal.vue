@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import {
   CONSENT_OPTIONS,
   allHarnesses,
@@ -13,12 +13,16 @@ import {
 import { apiPostJson, useRelayClient } from '../lib/relay-client'
 import { closePreflight, localPreview, usePreflight, type LaunchPlan } from '../lib/launch'
 import { launchEmbedded } from '../lib/execution'
+import { trapFocus } from '../lib/focus-trap'
 
 const props = defineProps<{ workspace: string }>()
 
 const client = useRelayClient()
 const sel = selection()
 const preflight = usePreflight()
+
+const overlay = ref<HTMLElement | null>(null)
+let releaseTrap: (() => void) | null = null
 
 const intent = ref('')
 const harnessId = ref<string | null>(null)
@@ -65,16 +69,28 @@ function loadPlan(): void {
 watch(
   () => preflight.open,
   async (open) => {
-    if (!open) return
+    if (!open) {
+      releaseTrap?.()
+      releaseTrap = null
+      return
+    }
     intent.value = preflight.intent
     harnessId.value = sel.harnessId ?? harnesses.value.find((h) => h.state !== 'absent')?.id ?? null
     launching.value = false
     error.value = ''
     plan.value = null
     await nextTick()
+    if (overlay.value) {
+      releaseTrap = trapFocus(overlay.value)
+    }
     loadPlan()
   },
 )
+
+onBeforeUnmount(() => {
+  releaseTrap?.()
+  releaseTrap = null
+})
 
 watch(harnessId, () => loadPlan())
 watch(intent, () => loadPlan())
@@ -147,6 +163,7 @@ const rows = computed(() => {
 <template>
   <div
     v-if="preflight.open"
+    ref="overlay"
     class="selector-overlay"
     role="dialog"
     aria-modal="true"

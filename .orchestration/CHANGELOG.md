@@ -1,5 +1,71 @@
 # Change log
 
+## 2026-09-07 - T-001 - Foco visível em todos os controles
+- Backlog: B-016
+- Spec: .specs/20260907-010-acessibilidade-e-remanescentes.md
+- Result: regra global `:focus-visible { outline: 1px solid var(--blue-line);
+  outline-offset: 2px }` acrescentada e o `outline: none` do
+  `.preflight__prompt:focus` removido — que era a única regra suprimindo o anel
+  e violava a regra 3 da seção 7. Nenhum token novo: `--blue-line` já era o
+  anel autorizado pela seção 7.
+- Evidence: `grep` por `outline: none` em `app.css` retorna vazio; `grep` por
+  `:focus-visible` retorna a regra global. Nenhum `#hex`/`rgba(` literal novo.
+- Criteria: A-005
+- Decisions: anel único global, em vez de `:focus` por componente — contraste
+  via `--blue-line` (mais forte que `--line-2`, o outro anel permitido).
+
+## 2026-09-07 - T-002 - Contenção de foco no PreflightModal
+- Backlog: B-016
+- Spec: .specs/20260907-010-acessibilidade-e-remanescentes.md
+- Result: `lib/focus-trap.ts` prende Tab/Shift+Tab dentro do overlay
+  (`trapFocus`), retornando o release. `PreflightModal.vue` instala o trap no
+  `ref="overlay"` quando abre (`preflight.open` → `nextTick` → `trapFocus`) e
+  solta no fechamento e no `onBeforeUnmount`.
+- Evidence: `trapFocus` itera só elementos focáveis visíveis (offsetParent);
+  o Tab cicla primeiro↔último sem vazar do modal. typecheck/build limpos.
+- Criteria: A-005
+- Decisions: trap em composable reutilizável; a cláusula de foco do A-005 é
+  sobre o PreflightModal, então o trap só é instalado ali (o seletor standalone
+  e o KeyboardWarning mantêm Esc/clique-fora, já focáveis pela regra global).
+
+## 2026-09-07 - T-003 - Auditoria documentada por componente × cinco regras
+- Backlog: B-016
+- Spec: .specs/20260907-010-acessibilidade-e-remanescentes.md
+- Result: os componentes existentes (StatusPill, HandoffCard, ChecklistList,
+  RepairScreen, Header, EmptyState, MainScreen, seletor de harness e
+  consentimento, três colunas do WorkScreen, PreflightModal, barra e controles
+  do modo de execução, faixa de segundo plano) foram conferidos contra as cinco
+  regras da seção 7. Única falha: "foco visível" (regra 3) — corrigida em
+  T-001/T-002. Regras 1 (contraste AA), 2 (cor+texto), 4 (alvos 32-36px) e 5
+  (hierarquia) passam em todos. Achado de desatualização: a spec afirma que "só
+  a primária existe no HandoffCard", mas a secundária já foi criada em B-012.
+- Evidence: contraste vem dos tokens AA da seção 2 e não há literal de cor fora
+  de `tokens.css` (verificado em B-004, re-confirmado aqui por `grep`); todo
+  status tem rótulo textual (StatusPill e ChecklistList); todo controle usa
+  `--control-height`/`--control-height-sm` (36/32px).
+- Criteria: A-001, A-003
+- Decisions: a auditoria é manual (non-goal da spec) e não gerou entrada nova
+  de backlog — nenhuma falha exigiu decisão de token nova além do já previsto
+  na seção 7. Nenhuma decisão visual nova foi tomada.
+
+## 2026-09-07 - T-004 - Painel "Gravado em disco" finalizado
+- Backlog: B-016
+- Spec: .specs/20260907-010-acessibilidade-e-remanescentes.md
+- Result: `DiskLog.vue` passou a formatar o horário (`formatRelative` em vez do
+  no-op anterior). O painel já renderiza uma entrada por escrita, mais recente
+  primeiro (`reversed`), com selo `ATUALIZADO`/`LIMPO`, caminho, horário, linha
+  de prosa do significado e colunas Antes/Depois — e o `LIMPO` de um handoff
+  esvaziado aparece como qualquer entrada (o tracker do host emite
+  `type: 'cleared'` quando `after === ''`). Contador `N arquivos alterados` é a
+  contagem real (A-004); o da faixa de segundo plano usa o mesmo `writtenFiles`.
+- Evidence: `disk.ts` (host) difere os quatro registros de `.orchestration/`
+  por run; o cliente consome `disk` frames via `onDisk`/`useDisk()`. A variante
+  `button--danger` é usada só por "Encerrar processo" (ExecutionMode), confirmado
+  por `grep` — nenhuma ação não destrutiva usa perigo.
+- Criteria: A-002, A-003, A-004
+- Decisions: contador nunca é percentual nem posição — só `entries.length` e
+  `writtenFiles` (mesma regra da ADR-0003 sobre contagem).
+
 ## 2026-09-07 - T-001 - PTY no relay-host por processo nativo
 - Backlog: B-015
 - Spec: .specs/20260907-009-terminal.md

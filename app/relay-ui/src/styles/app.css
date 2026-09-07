@@ -2,6 +2,11 @@
   box-sizing: border-box;
 }
 
+:focus-visible {
+  outline: var(--border-width) solid var(--blue-line);
+  outline-offset: 2px;
+}
+
 html,
 body {
   margin: 0;
@@ -875,7 +880,6 @@ body {
 }
 
 .preflight__prompt:focus {
-  outline: none;
   border-color: var(--blue-line);
 }
 
