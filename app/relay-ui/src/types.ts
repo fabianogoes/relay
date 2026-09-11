@@ -59,3 +59,7 @@ export interface UiPayload {
   state: RelayState
   environment: Environment
 }
+
+export type RelayMessage =
+  | { kind: 'snapshot'; payload: UiPayload }
+  | { kind: 'refreshing' }

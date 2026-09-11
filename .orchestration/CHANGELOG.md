@@ -1,5 +1,185 @@
 # Change log
 
+## 2026-09-11 - T-004 - Construir e validar visualmente o observador
+- Backlog: B-031
+- Spec: .specs/20260910-001-observador-read-only.md
+- Result: o observador foi aberto num browser real contra este repositorio
+  (`--workspace`, sem `--exec`) e cada rodada de validacao virou correcao.
+  (1) `TODO.md` tinha cabecalho duplicado (`# Active task` sem ID antes de
+  `# Active task: B-031`), e como `parseTodo` usa `match` sem `/g` ele casava
+  o primeiro: `activeBacklogId` resolvia `null`, o estado inteiro virava
+  `inconsistent` e o backlog de toda spec aparecia vazio na aba Trabalho.
+  (2) A aba Agora passou a caber numa viewport: as duas caixas do HandoffCard
+  tem largura e altura iguais (grade `1fr 1fr` e o mesmo teto
+  `--handoff-context-max-height`), cada uma com rolagem propria; o card leva o
+  tom do status na moldura; subtarefas em ordem decrescente num painel com
+  rolagem propria; `.app` virou `100dvh` com `.app__body` como unico filho
+  rolavel. (3) A aba Trabalho virou cascata de cartoes — spec -> cartoes de
+  backlog -> cartoes de changelog filtrados por `backlogId` — com rolagem
+  independente por coluna, botao "Tarefas" abrindo o modal de subtarefas do
+  backlog, e a aba escolhida sobrevivendo ao reload via `sessionStorage`.
+  (4) A tela Escolher deixou de estar inteira atras de `execEnabled`: em
+  read-only ela lista as tarefas disponiveis e diz por que a escolha e do
+  usuario; so as acoes de lancamento seguem condicionadas.
+- Evidence: A-003 e A-004 conferidos na tela pelo usuario — nenhum selo,
+  preflight, terminal ou aviso de harness montado, com a proveniencia
+  "Escrito no claude · ha N min" visivel no card; a aba Trabalho mostrando a
+  lista de specs com caminho e os cartoes de backlog da spec selecionada. O
+  estado voltou a `{ kind: 'ok', status: 'in_progress', activeBacklogId:
+  'B-031' }` apos a correcao do `TODO.md`, verificado por `deriveState` direto.
+  `node --test`: relay-core 25/25, relay-host 22/22, relay-ui 5/5; `tsc
+  --noEmit`, `vue-tsc --noEmit` e `vite build` limpos.
+- Criteria: A-003, A-004
+- Decisions: mudanca no codigo do `relay-host` exige reiniciar o processo — o
+  `dist/` da UI e relido do disco a cada request, mas o servidor e o binario
+  em memoria; foi isso que fez a rota nova do changelog devolver 404 por uma
+  rodada inteira. No modal de tarefas, backlog que nao e o ativo nao tem mais
+  `TODO.md`: suas subtarefas so existem como registros de changelog, e o modal
+  lista essas, todas concluidas, em vez de inventar marcador para subtarefa
+  que nao pode mais ser observada. A-008 e A-012 ficaram sem confirmacao
+  visual e seguem para B-032.
+
+## 2026-09-10 - T-003 - Remover a superficie de execucao da composicao read-only
+- Backlog: B-031
+- Spec: .specs/20260910-001-observador-read-only.md
+- Result: `App.vue` deixou de montar `HarnessSelector`, `PreflightModal` e
+  `KeyboardWarning` incondicionalmente e de chamar `GET /api/harnesses` sempre
+  que havia host — as tres montagens e a busca agora dependem de
+  `payload.environment.execEnabled` (`execEnabled` como `computed`, e a busca
+  de harnesses movida do `onMounted` fixo para um `watch(execEnabled, ...,
+  { immediate: true })`). `Header.vue` e `MainScreen.vue` ja gateavam o selo e
+  a acao de execucao por `v-if="execEnabled"`; nada mudou neles. `activeRunId`
+  so e escrito por `launchEmbedded`, chamada apenas pelo `PreflightModal`
+  agora desmontado sob read-only, entao `ExecutionMode`/`BackgroundStrip`
+  permanecem inalcancaveis sem exec.
+- Evidence: nao ha infraestrutura de mount de SFC neste pacote (sem
+  `@vue/test-utils`/jsdom nas devDependencies) — verificacao seguiu o padrao ja
+  usado nas mudancas de composicao anteriores (B-014/T-005): leitura integral
+  de `App.vue` confirma as tres montagens sob `v-if="execEnabled"` e a busca de
+  harnesses fora do `onMounted` incondicional. `vue-tsc --noEmit` e `npm run
+  build` (vite build) terminaram sem erros.
+- Criteria: A-003
+- Decisions: o "next step" do handoff previa um teste montando `App.vue`; a
+  investigacao mostrou que este pacote nao tem harness de teste de componente
+  Vue, entao a verificacao seguiu a convencao ja registrada no changelog para
+  composicao condicional (leitura + typecheck + build), sem introduzir uma
+  dependencia de teste nova so para esta mudanca.
+
+## 2026-09-10 - T-002 - Tornar spec, backlog e changelog coerentes sob atualizacao
+- Backlog: B-031
+- Spec: .specs/20260910-001-observador-read-only.md
+- Result: `lib/work.ts` (`reconcileSpecId`, `createLatestRequest`) cai
+  deterministicamente para a primeira spec quando a selecionada desaparece e
+  aborta/ignora requisicoes anteriores por revisao. `WorkScreen.vue` passou a
+  usar as duas unidades: `reload()` reconcilia a selecao a cada mudanca de
+  `payload` e descarta specs/changelog de uma revisao que deixou de ser a
+  atual antes de aplicar o resultado; `loadSpecText` busca
+  `/api/specs/<id>` e exibe o texto bruto da spec selecionada (mono, acima do
+  backlog filtrado), com a mesma guarda de revisao.
+- Evidence: `test/work.test.ts` falhou primeiro por ausencia de `lib/work.ts`;
+  depois da implementacao, `node --test` passou 5/5 (specs, host, observer,
+  work). `vue-tsc --noEmit` terminou sem erros apos ligar `loadSpecText` e a
+  guarda do changelog ao mesmo `listRequests`.
+- Criteria: A-004, A-005, A-007
+- Decisions: uma unica revisao (`listRequests`) protege specs e changelog
+  juntos, porque ambos nascem do mesmo `reload()` e uma resposta tardia de
+  qualquer um dos dois precisa ser descartada quando uma revisao mais nova ja
+  comecou; o texto da spec usa uma revisao propria (`textRequests`) porque
+  troca de selecao é independente de um novo `reload()`.
+
+## 2026-09-10 - T-001 - Consumir snapshots e expor frescor da conexao na UI
+- Backlog: B-031
+- Spec: .specs/20260910-001-observador-read-only.md
+- Result: a relay-ui reduz frames `snapshot`, `refreshing` e desconexao num
+  unico estado de view, preserva o ultimo payload e mostra no Header os rotulos
+  Conectando, Atualizado, Atualizando ou Desatualizado com regiao `status`.
+- Evidence: o teste da UI falhou primeiro pela ausencia do reducer e do rotulo;
+  depois passou 3/3 cobrindo preservacao do snapshot, stale e os quatro textos.
+  `vue-tsc --noEmit` terminou sem erros.
+- Criteria: A-008
+- Decisions: frescor e estado do cliente, nao campo de apresentacao do
+  `relay-core`; fixture mode aparece sempre como Atualizado.
+
+## 2026-09-10 - T-003 - Verificar o contrato reativo do relay-host
+- Backlog: B-030
+- Spec: .specs/20260910-001-observador-read-only.md
+- Result: o servidor retem o estado de transicao, entrega `refreshing` a quem
+  conecta durante a janela e so retorna a snapshot depois de `broadcast`; as
+  garantias HTTP, autenticacao e terminal permaneceram intactas.
+- Evidence: a suite completa revelou a corrida ao receber snapshot sem
+  `refreshing`; um teste deterministico reproduziu conexao durante transicao e
+  falhou antes da correcao. Depois, o teste passou e tres execucoes completas
+  concorrentes passaram 21/21; typecheck do host terminou sem erros.
+- Criteria: A-006
+- Decisions: `refreshing` e estado retido do servidor, nao apenas um evento
+  efemero, para que clientes tardios nunca recebam snapshot intermediario.
+
+## 2026-09-10 - T-002 - Publicar snapshot apenas apos 150 ms de quiescencia
+- Backlog: B-030
+- Spec: .specs/20260910-001-observador-read-only.md
+- Result: `watchWorkspace` sinaliza o primeiro evento de uma transicao, reinicia
+  uma janela trailing a cada escrita e publica um unico snapshot depois de 150
+  ms sem eventos; o wiring do host separa `broadcastRefreshing` de `broadcast`.
+- Evidence: o teste integrado falhou primeiro porque a API antiga aceitava um
+  callback unico e usava 40 ms; depois da implementacao, agrupou duas escritas,
+  observou `refreshing`, recusou snapshot prematuro e passou apos a quiescencia.
+- Criteria: A-006
+- Decisions: o sinal `refreshing` ocorre uma vez por rajada; eventos seguintes
+  apenas reiniciam a janela ate `onSettled`.
+
+## 2026-09-10 - T-001 - Envelopar snapshots e sinalizar transicao no WebSocket
+- Backlog: B-030
+- Spec: .specs/20260910-001-observador-read-only.md
+- Result: o canal de estado envia mensagens discriminadas `snapshot` e
+  `refreshing`; conexao e broadcast estavel envelopam o `UiPayload`, e o
+  servidor expoe um broadcast proprio para inicio de transicao.
+- Evidence: o teste do servidor falhou primeiro ao receber o payload antigo sem
+  `kind`; depois da implementacao, `test/server.test.ts` passou 9/9 e observou
+  tanto o snapshot inicial quanto o frame `refreshing` real via WebSocket.
+- Criteria: none
+- Decisions: a semantica de transporte fica no relay-host; `relay-core`
+  continua puro e alheio ao WebSocket.
+
+## 2026-09-10 - T-003 - Verificar o contrato read-only e a entrada multi-workspace
+- Backlog: B-029
+- Spec: .specs/20260910-001-observador-read-only.md
+- Result: o contrato documentado e o entrypoint concordam sobre read-only por
+  default, opt-in de execucao, compatibilidade de `--no-exec` e workspace
+  resolvido; nenhuma API programatica existente do host foi removida.
+- Evidence: `npm run typecheck --workspace relay-host` terminou sem erros;
+  `npm test --workspace relay-host` passou 20/20; `git diff --check` terminou
+  limpo; `git status` confirma que as mudancas da nova spec seguem sem commit.
+- Criteria: A-001, A-002
+- Decisions: none.
+
+## 2026-09-10 - T-002 - Implementar defaults, flags e workspace explicito no relay-host
+- Backlog: B-029
+- Spec: .specs/20260910-001-observador-read-only.md
+- Result: `parseCliArgs` torna read-only o default, habilita execucao somente
+  com `--exec`, faz `--no-exec` vencer combinacoes contraditorias e resolve
+  `--workspace=<path>` contra o cwd; o entrypoint usa o resultado e informa o
+  workspace observado.
+- Evidence: `test/cli.test.ts` falhou primeiro porque `parseCliArgs` nao existia;
+  depois da implementacao, o teste focado passou 4/4 e a suite completa do
+  relay-host passou 20/20, incluindo rotas e WebSocket em loopback.
+- Criteria: A-001, A-002
+- Decisions: o parser e puro para testar o contrato sem mutar `process.argv`;
+  `start` e `createRelayServer` mantiveram suas interfaces.
+
+## 2026-09-10 - T-001 - Registrar a decisao arquitetural do observador read-only
+- Backlog: B-029
+- Spec: .specs/20260910-001-observador-read-only.md
+- Result: ADR-0007 registra read-only como default seguro, `--exec` como opt-in,
+  workspace explicito, snapshots apos quiescencia e frescor visivel; o design
+  system passa a condicionar controles de harness a execucao e inclui o
+  conteudo textual da spec na visao Trabalho.
+- Evidence: a ADR contem Status, Contexto, Decisao, Consequencias, Compliance e
+  Notes; o indice de ADRs aponta para o arquivo; as regras de componente foram
+  atualizadas antes do codigo e nenhum token visual mudou.
+- Criteria: none
+- Decisions: ADR-0007 complementa, sem superseder, a ADR-0006; o transporte e
+  as garantias de seguranca existentes permanecem.
+
 ## 2026-09-07 - T-001 - Foco visível em todos os controles
 - Backlog: B-016
 - Spec: .specs/20260907-010-acessibilidade-e-remanescentes.md

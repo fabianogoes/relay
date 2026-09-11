@@ -44,6 +44,7 @@
   --container-width: 1280px;
   --control-height-sm: 32px;
   --control-height: 36px;
+  --handoff-context-max-height: 22vh;
 
   --font-sans: 'Space Grotesk', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;

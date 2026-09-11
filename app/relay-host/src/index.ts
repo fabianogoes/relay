@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto'
+import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readWorkspace } from './reader.ts'
 import { buildPayload } from './state.ts'
@@ -8,7 +9,7 @@ import { launch, preview } from './launcher.ts'
 import { watchWorkspace } from './watcher.ts'
 import { getRun, startExec, listActiveRuns, executorEvents } from './executor.ts'
 import { createRelayServer, type RelayServer, type ServerDeps } from './server.ts'
-import type { Environment } from 'relay-core'
+import { parseChangelog, type ChangelogRecord, type Environment } from 'relay-core'
 import type { RunInfo } from './pty.ts'
 
 export interface StartOptions {
@@ -16,6 +17,23 @@ export interface StartOptions {
   execEnabled: boolean
   port?: number
   onListen?: (port: number) => void
+}
+
+export interface CliOptions {
+  workspace: string
+  execEnabled: boolean
+  port?: number
+}
+
+export function parseCliArgs(args: string[], cwd = process.cwd()): CliOptions {
+  const workspaceArg = args.find((arg) => arg.startsWith('--workspace='))
+  const portArg = args.find((arg) => arg.startsWith('--port='))
+  const options: CliOptions = {
+    workspace: workspaceArg ? resolve(cwd, workspaceArg.slice('--workspace='.length)) : cwd,
+    execEnabled: args.includes('--exec') && !args.includes('--no-exec'),
+  }
+  if (portArg) options.port = Number(portArg.slice('--port='.length))
+  return options
 }
 
 export function makeDeps(workspace: string, environment: Environment): ServerDeps {
@@ -33,6 +51,9 @@ export function makeDeps(workspace: string, environment: Environment): ServerDep
     },
     changelog() {
       return read().changelog
+    },
+    changelogEntries() {
+      return parseChangelog(read().changelog)
     },
     spec(id: string) {
       return read().specs[`.specs/${id}`] ?? null
@@ -107,12 +128,15 @@ export async function start(options: StartOptions): Promise<RelayServer> {
     port: options.port,
     deps: makeDeps(options.workspace, environment),
   })
-  const watcher = watchWorkspace(options.workspace, () => {
-    server.broadcast()
-    for (const run of listActiveRuns()) {
-      const fresh = run.disk.diff()
-      if (fresh.length > 0) server.termDisk(run.runId, fresh)
-    }
+  const watcher = watchWorkspace(options.workspace, {
+    onDirty: () => server.broadcastRefreshing(),
+    onSettled: () => {
+      server.broadcast()
+      for (const run of listActiveRuns()) {
+        const fresh = run.disk.diff()
+        if (fresh.length > 0) server.termDisk(run.runId, fresh)
+      }
+    },
   })
   executorEvents.runStarted = (run) => {
     run.handle.onData((chunk) =>
@@ -133,10 +157,9 @@ function isMain(): boolean {
 }
 
 if (isMain()) {
-  const args = process.argv.slice(2)
-  const execEnabled = !args.includes('--no-exec')
-  const portArg = args.find((a) => a.startsWith('--port='))
-  const port = portArg ? Number(portArg.split('=')[1]) : 0
-  const server = await start({ workspace: process.cwd(), execEnabled, port })
-  console.log(`relay-host em http://127.0.0.1:${server.port} (exec ${execEnabled ? 'ligado' : 'desligado'})`)
+  const options = parseCliArgs(process.argv.slice(2))
+  const server = await start(options)
+  console.log(
+    `relay-host em http://127.0.0.1:${server.port} (workspace ${options.workspace}; exec ${options.execEnabled ? 'ligado' : 'desligado'})`,
+  )
 }

@@ -6,15 +6,15 @@ import { makeDeps } from '../src/index.ts'
 import { watchWorkspace } from '../src/watcher.ts'
 import { makeWorkspace } from '../support/workspace.ts'
 import { WebSocket } from 'ws'
-import type { UiPayload } from 'relay-core'
+import type { RelayMessage } from '../src/server.ts'
 
 const TOKEN = 'watch-token'
 
-function connectWs(url: string): Promise<{ ws: WebSocket; messages: UiPayload[] }> {
+function connectWs(url: string): Promise<{ ws: WebSocket; messages: RelayMessage[] }> {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(url, `relay.${TOKEN}`, { origin: `http://127.0.0.1:${new URL(url).port}` })
-    const messages: UiPayload[] = []
-    ws.on('message', (data) => messages.push(JSON.parse(data.toString()) as UiPayload))
+    const messages: RelayMessage[] = []
+    ws.on('message', (data) => messages.push(JSON.parse(data.toString()) as RelayMessage))
     ws.once('open', () => resolve({ ws, messages }))
     ws.once('error', reject)
     ws.once('unexpected-response', (_req, res) => {
@@ -25,13 +25,22 @@ function connectWs(url: string): Promise<{ ws: WebSocket; messages: UiPayload[] 
   })
 }
 
-async function waitFor(messages: UiPayload[], predicate: (p: UiPayload) => boolean): Promise<UiPayload> {
+async function waitFor(
+  messages: RelayMessage[],
+  predicate: (message: RelayMessage) => boolean,
+  label: string,
+): Promise<RelayMessage> {
   const found = messages.find(predicate)
   if (found) return found
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      clearInterval(iv)
+      reject(new Error(`mensagem esperada nao chegou: ${label}; recebidas=${JSON.stringify(messages)}`))
+    }, 2_000)
     const iv = setInterval(() => {
       const hit = messages.find(predicate)
       if (hit) {
+        clearTimeout(timeout)
         clearInterval(iv)
         resolve(hit)
       }
@@ -39,7 +48,7 @@ async function waitFor(messages: UiPayload[], predicate: (p: UiPayload) => boole
   })
 }
 
-test('mudança em .orchestration/ empurra novo UiPayload via WebSocket', async () => {
+test('mudancas agrupadas sinalizam refreshing e publicam um snapshot apos 150 ms de quiescencia', async () => {
   const ws = makeWorkspace()
   const server = await createRelayServer({
     workspace: ws.dir,
@@ -47,20 +56,47 @@ test('mudança em .orchestration/ empurra novo UiPayload via WebSocket', async (
     token: TOKEN,
     deps: makeDeps(ws.dir, { workspace: ws.dir, execEnabled: true }),
   })
-  const watcher = watchWorkspace(ws.dir, () => server.broadcast())
+  const watcher = watchWorkspace(ws.dir, {
+    onDirty: () => server.broadcastRefreshing(),
+    onSettled: () => server.broadcast(),
+  })
   try {
     const client = await connectWs(`ws://127.0.0.1:${server.port}/ws`)
-    const initial = await waitFor(client.messages, () => true)
-    assert.equal(initial.state.kind, 'ok')
-    if (initial.state.kind === 'ok') assert.equal(initial.state.status, 'backlog')
+    const initial = await waitFor(client.messages, (message) => message.kind === 'snapshot', 'snapshot inicial')
+    assert.equal(initial.kind, 'snapshot')
+    if (initial.kind === 'snapshot') {
+      assert.equal(initial.payload.state.kind, 'ok')
+      if (initial.payload.state.kind === 'ok') assert.equal(initial.payload.state.status, 'backlog')
+    }
 
     const todo = '# Active task: B-001\n\n- [ ] T-001 - Subtarefa\n'
     ws.write('.orchestration/TODO.md', todo)
-    const updated = await waitFor(client.messages, (p) => p.state.kind === 'ok' && p.state.activeBacklogId === 'B-001')
-    assert.equal(updated.state.kind, 'ok')
-    if (updated.state.kind === 'ok') {
-      assert.equal(updated.state.activeBacklogId, 'B-001')
-      assert.equal(updated.state.todo[0].id, 'T-001')
+
+    await waitFor(client.messages, (message) => message.kind === 'refreshing', 'refreshing')
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    ws.write('.orchestration/TODO.md', `${todo}- [ ] T-002 - Outra subtarefa\n`)
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    const premature = client.messages.find(
+      (message) =>
+        message.kind === 'snapshot' &&
+        message.payload.state.kind === 'ok' &&
+        message.payload.state.todo.length === 2,
+    )
+    assert.equal(premature, undefined)
+
+    const updated = await waitFor(
+      client.messages,
+      (message) =>
+        message.kind === 'snapshot' &&
+        message.payload.state.kind === 'ok' &&
+        message.payload.state.todo.length === 2,
+      'snapshot com duas subtarefas',
+    )
+    assert.equal(updated.kind, 'snapshot')
+    if (updated.kind === 'snapshot' && updated.payload.state.kind === 'ok') {
+      assert.equal(updated.payload.state.activeBacklogId, 'B-001')
+      assert.equal(updated.payload.state.todo[1].id, 'T-002')
     }
     client.ws.close()
   } finally {

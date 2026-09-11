@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import type { UiPayload } from '../types'
 import StatusPill from './StatusPill.vue'
+import FreshnessStatus from './FreshnessStatus.vue'
+import type { Freshness } from '../lib/observer'
 import {
   CONSENT_OPTIONS,
   HARNESS_FIXTURE,
@@ -13,7 +15,11 @@ import {
   selection,
 } from '../lib/harness'
 
-const props = defineProps<{ payload: UiPayload; view: 'agora' | 'trabalho' }>()
+const props = defineProps<{
+  payload: UiPayload
+  view: 'agora' | 'trabalho'
+  freshness: Freshness
+}>()
 const emit = defineEmits<{ (e: 'update:view', view: 'agora' | 'trabalho'): void }>()
 
 const status = computed(() =>
@@ -70,7 +76,7 @@ const workspaceName = computed(() => {
       </button>
     </nav>
     <span class="header__spacer"></span>
-    <button class="harness-badge" @click="openSelector()">
+    <button v-if="payload.environment.execEnabled" class="harness-badge" @click="openSelector()">
       <span
         class="harness-avatar"
         :class="activeTone ? `harness-avatar--${activeTone}` : 'harness-avatar--neutral'"
@@ -83,6 +89,7 @@ const workspaceName = computed(() => {
         <span class="harness-badge__scope mono">{{ consentScope }}</span>
       </span>
     </button>
+    <FreshnessStatus :freshness="freshness" />
     <StatusPill :status="status" />
   </header>
 </template>

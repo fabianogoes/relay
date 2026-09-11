@@ -39,7 +39,7 @@ function resume(): void {
 </script>
 
 <template>
-  <article class="handoff-card">
+  <article class="handoff-card" :class="blocked ? 'is-blocked' : 'is-in-progress'">
     <div class="handoff-card__provenance">
       <span
         class="harness-avatar"
@@ -48,8 +48,8 @@ function resume(): void {
       >
         {{ writerInitials }}
       </span>
-      <span class="mono">
-        escrito no {{ writer?.name ?? handoff.harness }} ·
+      <span class="handoff-card__writer">
+        Escrito no {{ writer?.name ?? handoff.harness }} ·
         {{ formatRelative(handoff.updated) }}
       </span>
     </div>
@@ -65,10 +65,12 @@ function resume(): void {
     </h2>
     <div class="handoff-card__columns">
       <section class="handoff-card__column">
-        <h3 class="handoff-card__column-title">Próximo passo</h3>
+        <h3 class="handoff-card__column-title handoff-card__column-title--accent">
+          Próximo passo
+        </h3>
         <p class="handoff-card__next-step">{{ handoff.nextStep }}</p>
       </section>
-      <section class="handoff-card__column" :class="{ 'is-blocked': blocked }">
+      <section class="handoff-card__column">
         <h3 class="handoff-card__column-title">Contexto deixado</h3>
         <p class="handoff-card__context">{{ handoff.context }}</p>
       </section>

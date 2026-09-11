@@ -32,9 +32,11 @@ const activeHarnessName = computed(() => {
   return allHarnesses().find((h) => h.state !== 'absent')?.name ?? '…'
 })
 
-function available(entries: ChecklistEntry[]): ChecklistEntry[] {
-  return entries.filter((e) => e.available)
-}
+const availableEntries = computed<ChecklistEntry[]>(() => {
+  if (!ok.value) return []
+  const source = status.value === 'backlog' ? ok.value.backlog : ok.value.todo
+  return source.filter((e) => e.available)
+})
 
 function comecar(backlogId: string): void {
   openPreflight({
@@ -52,7 +54,7 @@ function entrevista(): void {
 <template>
   <RepairScreen v-if="inconsistent" :violations="inconsistent.violations" />
 
-  <template v-else-if="ok">
+  <div v-else-if="ok" class="agora">
     <HandoffCard
       v-if="handoff"
       :handoff="handoff"
@@ -62,8 +64,9 @@ function entrevista(): void {
 
     <ChecklistList
       v-if="handoff && ok.todo.length > 0"
+      class="agora__subtasks"
       title="Subtarefas"
-      :entries="ok.todo"
+      :entries="[...ok.todo].reverse()"
       :completed="ok.completed"
       :total="ok.total"
     />
@@ -71,30 +74,36 @@ function entrevista(): void {
     <template v-if="!handoff && status !== 'done'">
       <ChecklistList
         v-if="status === 'ready' && ok.todo.length > 0"
+        class="agora__subtasks"
         title="Subtarefas"
-        :entries="ok.todo"
+        :entries="[...ok.todo].reverse()"
         :completed="ok.completed"
         :total="ok.total"
       />
       <EmptyState v-else-if="status === 'idle'" message="Sem trabalho ativo." />
 
-      <section v-if="execEnabled" class="choose">
+      <section v-if="availableEntries.length > 0" class="choose">
+        <p class="choose__reason">
+          Estas tarefas são independentes entre si — a ordem da lista não é fila
+          nem prioridade, e <code class="mono">needs</code> é a única dependência
+          real. A escolha é sua.
+        </p>
         <ul class="choose__list">
-          <li
-            v-for="entry in available(status === 'backlog' ? ok.backlog : ok.todo)"
-            :key="entry.id"
-            class="choose__item"
-          >
+          <li v-for="entry in availableEntries" :key="entry.id" class="choose__item">
             <span class="choose__id mono">{{ entry.id }}</span>
             <span class="choose__text">{{ entry.text }}</span>
             <span v-if="entry.spec" class="choose__spec mono">{{ entry.spec }}</span>
-            <button class="button button--primary choose__action" @click="comecar(ok.activeBacklogId ?? entry.id)">
+            <button
+              v-if="execEnabled"
+              class="button button--primary choose__action"
+              @click="comecar(ok.activeBacklogId ?? entry.id)"
+            >
               ▶ Começar no {{ activeHarnessName }}
             </button>
           </li>
         </ul>
 
-        <section class="choose__interview">
+        <section v-if="execEnabled" class="choose__interview">
           <h2 class="choose__interview-title">Iniciar entrevista</h2>
           <p class="choose__interview-text">
             Nenhuma tarefa cobre o que você precisa? Especifique uma ideia nova.
@@ -103,9 +112,9 @@ function entrevista(): void {
         </section>
       </section>
 
-      <EmptyState v-else-if="status === 'backlog'" message="Selecione uma tarefa no backlog." />
+      <EmptyState v-else-if="status === 'backlog'" message="Nenhuma tarefa disponível no backlog." />
     </template>
 
     <EmptyState v-if="!handoff && status === 'done'" message="Todo o trabalho concluído." />
-  </template>
+  </div>
 </template>

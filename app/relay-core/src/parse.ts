@@ -19,9 +19,12 @@ export interface RawHandoff {
 }
 
 export interface ChangelogRecord {
+  date: string
   todoId: string
+  title: string
   backlogId: string
   spec: string
+  evidence: string
   criteria: string[]
 }
 
@@ -129,22 +132,42 @@ export function parseHandoff(text: string): ParsedHandoff {
 export function parseChangelog(text: string): ChangelogRecord[] {
   const records: ChangelogRecord[] = []
   let current: ChangelogRecord | null = null
+  let activeField: 'evidence' | null = null
   for (const line of text.split('\n')) {
-    const header = line.match(/^##\s+\S+\s+-\s+(\S+)\s+-\s+/)
+    const header = line.match(/^##\s+(\S+)\s+-\s+(\S+)\s+-\s+(.*)$/)
     if (header) {
       if (current) records.push(current)
-      current = { todoId: header[1], backlogId: '', spec: '', criteria: [] }
+      current = {
+        date: header[1],
+        todoId: header[2],
+        title: header[3].trim(),
+        backlogId: '',
+        spec: '',
+        evidence: '',
+        criteria: [],
+      }
+      activeField = null
       continue
     }
     if (!current) continue
     const kv = line.match(/^-\s*([A-Za-z]+):\s*(.*)$/)
-    if (!kv) continue
-    const key = kv[1].toLowerCase()
-    const value = kv[2].trim()
-    if (key === 'backlog') current.backlogId = value
-    else if (key === 'spec') current.spec = value
-    else if (key === 'criteria') {
-      current.criteria = value.split(',').map((s) => s.trim()).filter(Boolean)
+    if (kv) {
+      const key = kv[1].toLowerCase()
+      const value = kv[2].trim()
+      activeField = null
+      if (key === 'backlog') current.backlogId = value
+      else if (key === 'spec') current.spec = value
+      else if (key === 'evidence') {
+        current.evidence = value
+        activeField = 'evidence'
+      } else if (key === 'criteria') {
+        current.criteria = value.split(',').map((s) => s.trim()).filter(Boolean)
+      }
+      continue
+    }
+    const continuation = line.trim()
+    if (activeField && continuation) {
+      current[activeField] = current[activeField] ? `${current[activeField]} ${continuation}` : continuation
     }
   }
   if (current) records.push(current)

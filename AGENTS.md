@@ -45,6 +45,16 @@ not only the choice.
   (authed request gets `404`, not `403`), harness detection on its own
   endpoint outside the `UiPayload`, and whole-directory watching that pushes a
   fresh `UiPayload` over WebSocket.
+- `docs/adr/0007-observador-read-only-como-primeira-entrega.md` — Accepted —
+  the first release opens read-only by default, keeps integrated execution
+  behind explicit `--exec`, accepts an explicit workspace path, preserves the
+  Agora/Trabalho hierarchy, and exposes transition/stale state while publishing
+  snapshots after 150 ms of quiescence. Decision 6 (added after visual
+  validation) serves the changelog **structured** as well, through
+  `relay-core`'s existing parser and a dedicated host route, so the Trabalho
+  view can cascade spec → backlog cards → changelog cards without the UI ever
+  parsing protocol grammar; the same revision drops the full spec text from
+  that view, and decision 3 carries the note.
 - `docs/adr/0001-arquitetura-inicial-da-ui.md` — Accepted — initial UI
   architecture: the `relay-core` / `relay-host` / `relay-ui` boundary over
   loopback HTTP and WebSocket, TypeScript throughout, browser UI with the

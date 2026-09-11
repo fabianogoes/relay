@@ -19,7 +19,26 @@ const hasFixturesParam = new URLSearchParams(window.location.search).has('fixtur
 const fixtureMode = ref(!client.hostMode || hasFixturesParam)
 
 const active = ref('in_progress')
-const view = ref<'agora' | 'trabalho'>('agora')
+
+const VIEW_KEY = 'relay.view'
+
+function storedView(): 'agora' | 'trabalho' {
+  try {
+    return sessionStorage.getItem(VIEW_KEY) === 'trabalho' ? 'trabalho' : 'agora'
+  } catch {
+    return 'agora'
+  }
+}
+
+const view = ref<'agora' | 'trabalho'>(storedView())
+
+watch(view, (current) => {
+  try {
+    sessionStorage.setItem(VIEW_KEY, current)
+  } catch {
+    // sem storage disponível: a aba volta ao padrão no próximo reload
+  }
+})
 
 const inExecution = computed(() => execution.activeRunId !== null && !execution.detached)
 const detached = computed(() => execution.activeRunId !== null && execution.detached)
@@ -30,6 +49,8 @@ const payload = computed(() => {
 })
 
 const workspace = computed(() => payload.value?.environment.workspace ?? '')
+const execEnabled = computed(() => payload.value?.environment.execEnabled ?? false)
+const freshness = computed(() => (fixtureMode.value ? 'current' : client.freshness.value))
 
 watch(
   workspace,
@@ -41,12 +62,19 @@ watch(
 
 onMounted(() => {
   if (client.hostMode && !hasFixturesParam) client.connect()
-  if (client.hostMode) {
-    apiGetJson<Harness[]>('/api/harnesses')
-      .then((list) => setHarnesses(list))
-      .catch(() => {})
-  }
 })
+
+watch(
+  execEnabled,
+  (enabled) => {
+    if (enabled && client.hostMode) {
+      apiGetJson<Harness[]>('/api/harnesses')
+        .then((list) => setHarnesses(list))
+        .catch(() => {})
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -69,15 +97,19 @@ onMounted(() => {
       <div v-if="!payload" class="empty-state">Conectando ao relay-host…</div>
 
       <template v-else>
-        <Header :payload="payload" :view="view" @update:view="view = $event" />
-        <BackgroundStrip v-if="detached" />
-        <MainScreen v-if="view === 'agora'" :payload="payload" />
-        <WorkScreen v-else :payload="payload" />
-        <HarnessSelector :workspace="payload.environment.workspace" />
-        <PreflightModal :workspace="payload.environment.workspace" />
+        <div class="app__body">
+          <Header :payload="payload" :view="view" :freshness="freshness" @update:view="view = $event" />
+          <BackgroundStrip v-if="detached" />
+          <MainScreen v-if="view === 'agora'" :payload="payload" />
+          <WorkScreen v-else :payload="payload" />
+        </div>
+        <template v-if="execEnabled">
+          <HarnessSelector :workspace="payload.environment.workspace" />
+          <PreflightModal :workspace="payload.environment.workspace" />
+        </template>
       </template>
     </template>
 
-    <KeyboardWarning />
+    <KeyboardWarning v-if="execEnabled" />
   </div>
 </template>

@@ -1,10 +1,12 @@
 import { ref, type Ref } from 'vue'
-import type { UiPayload } from '../types'
+import type { RelayMessage, UiPayload } from '../types'
+import { reduceRelayViewState, type Freshness, type RelayViewState } from './observer'
 
 export interface RelayClient {
   hostMode: boolean
   payload: Ref<UiPayload | null>
   connected: Ref<boolean>
+  freshness: Ref<Freshness>
   reconnectBackoff: number
   connect(): void
   disconnect(): void
@@ -27,6 +29,14 @@ const hostMode = token.value !== ''
 
 const payload = ref<UiPayload | null>(null)
 const connected = ref(false)
+const freshness = ref<Freshness>('connecting')
+let viewState: RelayViewState = { payload: null, freshness: 'connecting' }
+
+function applyViewState(next: RelayViewState): void {
+  viewState = next
+  payload.value = next.payload
+  freshness.value = next.freshness
+}
 
 let socket: WebSocket | null = null
 let retries = 0
@@ -66,10 +76,12 @@ function connect(): void {
     retries = 0
   })
   socket.addEventListener('message', (event) => {
-    payload.value = JSON.parse(String(event.data)) as UiPayload
+    const message = JSON.parse(String(event.data)) as RelayMessage
+    applyViewState(reduceRelayViewState(viewState, message))
   })
   socket.addEventListener('close', () => {
     connected.value = false
+    applyViewState(reduceRelayViewState(viewState, { kind: 'disconnected' }))
     scheduleReconnect()
   })
   socket.addEventListener('error', () => {
@@ -83,6 +95,7 @@ function disconnect(): void {
   socket?.close()
   socket = null
   connected.value = false
+  applyViewState(reduceRelayViewState(viewState, { kind: 'disconnected' }))
 }
 
 async function apiGet<T>(path: string): Promise<T> {
@@ -101,6 +114,7 @@ export const relayClient: RelayClient = {
   hostMode,
   payload,
   connected,
+  freshness,
   reconnectBackoff: RECONNECT_BASE,
   connect,
   disconnect,

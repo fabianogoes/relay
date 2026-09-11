@@ -1,14 +1,23 @@
 # Design System do Relay
 
-**Data:** 2026-09-06
+**Data:** 2026-09-06 · revisado em 2026-09-11
 **Autor:** Claude Code
-**Status:** vigente
+**Status:** vigente — descreve a interface **implementada**
 
 Este documento é a **fonte de autoridade** para toda a interface do Relay. A
 proposta ([`ui-proposal.md`](ui-proposal.md)) e os protótipos
 ([`prototypes/`](prototypes/)) permanecem no repositório como referência visual
 e histórica, mas o que vale para implementação é o que está aqui. Uma mudança de
 token ou de componente se faz primeiro neste documento, depois no código.
+
+Na revisão de 2026-09-11 esse "vale para implementação" deixou de ser
+aspiração: o observador read-only foi construído, aberto num browser contra um
+repositório Relay real e ajustado contra este documento até bater, e cada
+divergência encontrada virou decisão aqui **antes** do código. As seções 5 e 6
+descrevem agora o que está em pé — HandoffCard, lista de subtarefas, as três
+colunas da aba Trabalho, o cartão de backlog, o registro de changelog e o modal
+de tarefas. Onde um protótipo mostra outra coisa, o protótipo é o histórico e
+este documento é o estado oficial.
 
 A decisão de arquitetura que emoldura a UI está na
 [`../adr/0001-arquitetura-inicial-da-ui.md`](../adr/0001-arquitetura-inicial-da-ui.md).
@@ -20,8 +29,8 @@ Este documento não repete a arquitetura; ele padroniza o desenho da superfície
 | --- | --- | --- |
 | `README.md` (este) | fonte de verdade do design system: tokens, componentes e regras | ler antes de qualquer mudança de interface |
 | [`ui-proposal.md`](ui-proposal.md) | análise exploratória e arquitetura da UI (raciocínio e alternativas descartadas) | ler só quando a decisão de desenho não estiver na ADR |
-| [`design-system.html`](design-system.html) | exemplo visual **derivado** deste README | abrir no browser; nunca ler por agente |
-| [`prototypes/`](prototypes/) | protótipos históricos, ~350 KB cada | **nunca abrir num agente**; só referência visual no browser |
+| [`design-system.html`](design-system.html) | exemplo visual **derivado** deste README | abrir no browser; nunca ler por agente. Regenerado em 2026-09-11 a partir deste documento, com todos os tokens e os componentes da seção 6 |
+| [`prototypes/`](prototypes/) | protótipos históricos, ~350 KB cada | **nunca abrir num agente**; só referência visual no browser. Superados pela interface implementada — servem para ver de onde veio uma decisão, nunca para decidir |
 
 > **Nunca leia os `.html`** (`design-system.html` e `prototypes/*.html`) num
 > agente. O `design-system.html` duplica tokens deste README em CSS e o que há
@@ -61,9 +70,14 @@ conflitar com um princípio, o princípio vence.
    `FIFO`, sem posição, sem barra de progresso percentual, sem pista com
    dependências. O `TODO.md` não define ordem, dependência ou esforço; o backlog
    é *independentemente selecionável*.
-9. **Read-only existe como produto.** O modo `--no-exec` desliga a rota de
-   lançamento por completo e é o mesmo produto com a superfície de execução
-   removida — não um modo capado.
+9. **Read-only é o produto padrão.** A abertura normal desliga a rota de
+   lançamento por completo e apresenta o observador do workflow. A execução
+   integrada permanece como opt-in experimental por `--exec`; read-only é o
+   mesmo produto com a superfície de execução removida — não um modo capado.
+10. **Dado antigo se declara antigo.** Durante uma transição entre arquivos, a
+    UI mantém o último snapshot estável com o rótulo "Atualizando". Quando a
+    conexão cai, mantém o conteúdo para consulta com o rótulo "Desatualizado"
+    até receber um novo snapshot; nunca parece atual sem evidência.
 
 ---
 
@@ -76,7 +90,7 @@ de harness, em que este documento diverge do protótipo de propósito.
 | Token | Valor | Uso |
 | --- | --- | --- |
 | `--bg` | `#0b0d10` | fundo da aplicação |
-| `--bg-deep` | `#070a0d` | fundo de modais e sobreposições |
+| `--bg-deep` | `#070a0d` | fundo de modais e sobreposições; também a superfície recuada quando um painel precisa conter outro (as calhas da aba Trabalho, as caixas do HandoffCard) |
 | `--panel` | `#0f1318` | cartões e painéis |
 | `--panel-2` | `#151a21` | painéis elevados, tabelas |
 | `--raise` | `#1a2028` | estado de hover e superfícies destacadas |
@@ -131,8 +145,16 @@ Toda cor que carrega informação (texto, IDs, caminhos, timestamps) deve atingi
 | `done` | green | conclusão |
 | `idle` | meta (fundo transparente, linha `--line`) | sem trabalho ativo |
 
-Todo marcador de status combina **tom + rótulo textual**. O `StatusPill` (seção
-6) é o único componente autorizado a exibir status.
+Todo marcador de status combina **tom + rótulo textual** — essa é a regra
+inegociável, e vale em qualquer lugar que exiba status.
+
+A forma padrão é o `StatusPill` (seção 6), e é a única permitida quando o
+status aparece **solto**, fora de um objeto que já carregue o tom. Duas
+superfícies exibem status sem ele, por decisão registrada na seção 6, e ambas
+mantêm tom **e** texto: a **lista de subtarefas**, onde o rótulo acompanha o
+marcador do protocolo, e o **cartão de backlog**, que já é tonalizado por
+inteiro — ali um chip dentro de uma caixa colorida repetiria a mesma
+informação três vezes. Nenhuma outra superfície inventa uma terceira forma.
 
 ---
 
@@ -188,6 +210,18 @@ Regras:
 | `--space-6` | 24px |
 | `--space-8` | 32px |
 
+### Altura de painel com rolagem interna
+
+| Token | Valor | Uso |
+| --- | --- | --- |
+| `--handoff-context-max-height` | `22vh` | teto das duas caixas do HandoffCard ("Próximo passo" e "Contexto deixado") antes de rolarem internamente; é o mesmo valor nas duas, e é o que garante que tenham sempre o mesmo tamanho |
+
+Relativo à viewport, não em pixel fixo, porque a regra que ele serve — a tela
+**Retomar** cabe inteira sem rolagem de página (Header, HandoffCard e lista de
+subtarefas) — depende da altura real da janela, não de um valor de desenho
+fixo. A lista de subtarefas usa o espaço flexível restante (`flex: 1`) com a
+mesma rolagem interna, em vez de um segundo valor fixo.
+
 ### As três telas
 
 | Tela | Quando | Ação primária única |
@@ -201,21 +235,71 @@ estado inconsistente, a interface **desabilita** o resto — não apenas pinta u
 aviso. Restrição por construção vale mais que restrição por texto.
 
 A segunda visão (aba **Trabalho**, ao lado de **Agora**) é um painel de três
-colunas simultâneas, não uma sequência de telas: **Specs** (lista, com
-contagem de tarefas), **Backlog da spec selecionada** (filtrado pelo `spec`
-da entrada, com ação `Retomar`/`Começar` por linha), **Changelog** (registros
-mais recentes primeiro, com a evidência em rodapé mono). Selecionar uma spec
-na primeira coluna filtra a segunda; a terceira não depende da seleção. O
-handoff permanece o objeto central só da tela principal (aba **Agora**).
+colunas em cascata, não uma sequência de telas nem três painéis independentes:
+1 spec selecionada → N **cartões de backlog** (seção 6); 1 cartão de backlog
+selecionado → N **cartões de changelog** (seção 6), filtrados pelo `backlogId`
+daquele cartão.
+
+Cada coluna abre com um **rótulo mono em versal**, e um metadado à direita
+dele quando houver: `SPECS` (com a ação "+ nova spec" quando execução estiver
+habilitada), `BACKLOG DA SPEC` · `spec {id}`, `CHANGELOG` · `N registros`. O
+rótulo usa o tom que a seção 3 já dá àquele conteúdo — `--blue` para Specs e
+para Backlog (o tom de `backlog`/seleção), `--green` para Changelog (o tom de
+`done`, que é o que um registro de changelog é). Nenhum desses tons carrega
+estado novo: o estado continua no rótulo de status de cada cartão, sempre com
+texto.
+
+As três colunas ordenam **do mais recente para o mais antigo**, a mesma regra
+da lista de subtarefas da aba Agora: a spec criada por último no topo, o
+backlog na ordem inversa do `BACKLOG.md`, o changelog já nasce assim. A ordem
+textual desses arquivos não carrega prioridade nem sequência (é o que o
+protocolo diz em "Dependencies"), então invertê-la para exibir não desmente
+nada — e põe no topo o que se está olhando agora. O item selecionado por
+padrão é o **primeiro exibido**, ou seja, o mais recente; a regra
+determinística de "primeiro da ordem textual" continua sendo a do protocolo
+para *escolher trabalho*, que é outra coisa: aqui a seleção é um cursor de
+leitura, não uma decisão de execução.
+
+A visão inteira é **um cartão**, e cada coluna é **outro cartão dentro dele**
+— três superfícies aninhadas, resolvidas pela escala de fundo da seção 2 e
+não por sombra: `--panel` no cartão externo, `--bg-deep` na coluna (a mais
+escura da escala, lida como calha recuada) e `--panel-2` nos cartões de spec e
+de backlog, que assim ficam elevados sobre a calha. O registro de changelog
+não tem fundo próprio: é só a régua de acento, e a calha já o separa do resto.
+Sem esse degrau de três valores o aninhamento vira moldura dentro de moldura
+sem informação. A rolagem entre colunas é independente, dentro do cartão
+externo; nenhuma depende de rolagem de página.
+
+A coluna do meio mostra **apenas os cartões de backlog** da spec selecionada.
+O texto integral da spec não é reproduzido ali: ele é a intenção de origem,
+não o trabalho selecionável, e um documento inteiro em mono afogava os
+cartões que são o objeto real da coluna (ADR-0007, decisão 3, revisada). O
+caminho do arquivo continua visível no cartão de spec, que é a resposta para
+"onde leio isso por inteiro".
+
+Changelog é **estruturado**: `relay-core` já possuía o parser de registros
+(usado nas verificações de integridade) e agora o expõe também como dado
+derivado (data, subtarefa, título, backlog, evidência) por uma rota dedicada
+do `relay-host`; a UI nunca reimplementa esse parser — ela só filtra e
+renderiza a lista já estruturada que recebe. O invariante continua o mesmo
+(só `relay-core` interpreta a gramática do protocolo); o que mudou foi a
+decisão específica de manter changelog como texto cru, registrada na ADR-0007
+e revisada ali. O handoff permanece o objeto central só da tela principal
+(aba **Agora**).
 
 A tela **Escolher** não é um aviso de vazio. Ela lista as tarefas de backlog
-disponíveis, uma por linha, cada uma com o próprio ID, o caminho da spec em
-mono e a própria ação primária nomeando o harness ("▶ Começar no {harness}"),
-e fecha com um cartão para especificar uma ideia nova ("Iniciar entrevista").
-O texto diz **por que** a escolha é do usuário — as tarefas do backlog são
-independentes entre si, e `needs` é a única dependência real — em vez de
-apenas constatar que o handoff está vazio. Não há ação primária única nesta
-tela: há uma por linha, porque escolher é o trabalho.
+disponíveis, uma por linha, cada uma com o próprio ID e o caminho da spec em
+mono, precedidas do texto que diz **por que** a escolha é do usuário — as
+tarefas do backlog são independentes entre si, e `needs` é a única dependência
+real — em vez de apenas constatar que o handoff está vazio.
+
+Com execução habilitada, cada linha ganha a própria ação primária nomeando o
+harness ("▶ Começar no {harness}") e a tela fecha com um cartão para
+especificar uma ideia nova ("Iniciar entrevista"); não há ação primária única
+aqui, há uma por linha, porque escolher é o trabalho. Em read-only a lista e a
+explicação permanecem e só as ações somem: o que a tela existe para responder
+é "o que há para escolher", e isso não depende de poder lançar. Empty state de
+verdade é só quando não há nenhuma tarefa disponível.
 
 Enquanto uma execução está anexada, a UI entra em **modo de execução** e ocupa
 a viewport inteira: as abas Agora/Trabalho desaparecem e não há navegação
@@ -240,18 +324,42 @@ Tom + rótulo textual (nunca só cor). Fundo `-soft`, borda `-line`, tinta do to
 Ponto de status quando o espaço for mínimo, sempre acompanhado do rótulo.
 
 ### HandoffCard
-O maior elemento da tela principal. Cabeçalho com **proveniência** — avatar
-com as iniciais do harness, "escrito no {harness} · {tempo relativo}" — e o
-timestamp absoluto (`YYYY-MM-DD HH:MM`) junto do IDs (`B-002 / T-002`) numa
-linha mono logo abaixo. Título do objetivo em destaque
-(`OBJETIVO · {backlogId} / {todoId}` como rótulo pequeno acima). Corpo em
-**duas colunas lado a lado** — "Próximo passo" e "Contexto deixado" — nunca
-um parágrafo único misturando os dois. Rodapé: **um** botão primário
-("▶ Retomar {todoId} no {harness}", nomeando o harness), um botão secundário
-("Trocar harness") e o caminho da spec em mono, alinhado à direita. O card
-nunca mostra fila, posição ou percentual; mostra o contador verdadeiro
-(`2 de 4`) quando houver subtarefas, num rótulo acima da lista de subtarefas
-associada, não dentro do card.
+O maior elemento da tela principal, e o único que **carrega o tom do status**
+na própria moldura: `in_progress` usa borda `--green-line` sobre um véu
+`--green-soft` no `--panel`; `blocked` usa `--amber-line` e `--amber-soft`
+(seção 3). O tom na moldura é redundante com o StatusPill do Header de
+propósito — nunca substitui o rótulo textual, só torna o objeto central
+reconhecível à distância.
+
+Cabeçalho com **proveniência** em destaque — avatar com as iniciais do
+harness no tom de identidade dele, e "Escrito no {harness} · {tempo
+relativo}" em **sans, tamanho de subtítulo**, não em mono de metadado: é a
+primeira frase que a tela responde ("quem parou aqui, e quando"). O timestamp
+absoluto (`YYYY-MM-DD HH:MM`) junto dos IDs (`B-002 / T-002`) vem numa linha
+mono de metadado logo abaixo. Título do objetivo em destaque
+(`OBJETIVO · {backlogId} / {todoId}` como rótulo pequeno acima).
+
+Corpo em **duas colunas lado a lado**, cada uma sua própria caixa (borda
+`--line`, fundo `--bg-deep`, `--radius-2`) — "Próximo passo" e "Contexto
+deixado" — nunca um parágrafo único misturando os dois. **As duas caixas têm
+sempre o mesmo tamanho**: mesma largura (grade `1fr 1fr`) e mesma altura,
+porque ambas usam o mesmo teto `--handoff-context-max-height` (seção 5) com
+rolagem interna própria. Uma caixa nunca cresce mais que a outra por ter mais
+texto; texto que excede rola dentro dela. Assim o card não cresce sem limite
+por causa de um contexto longo, e a tela principal continua cabendo numa
+viewport sem rolagem de página.
+
+O rótulo de "Próximo passo" leva o **acento do tom** (`--green`, ou `--amber`
+quando bloqueado) e o de "Contexto deixado" fica em `--meta`: o acento marca
+a ação a tomar, o neutro marca o registro deixado para trás. É a única
+distinção de cor entre as duas caixas — a moldura, o fundo e o tamanho são
+idênticos.
+
+Rodapé: **um** botão primário ("▶ Retomar {todoId} no {harness}", nomeando o
+harness), um botão secundário ("Trocar harness") e o caminho da spec em mono,
+alinhado à direita. O card nunca mostra fila, posição ou percentual; mostra o
+contador verdadeiro (`2 de 4`) quando houver subtarefas, num rótulo acima da
+lista de subtarefas associada, não dentro do card.
 
 ### Botão primário
 Uma ação primária por tela. Tom sólido (`--green` ou o tom da ação), texto
@@ -326,6 +434,82 @@ conteúdo anterior à esquerda e o registro vazio à direita, e é exatamente al
 que a invariante do handoff — limpo só depois do changelog — fica visível sem
 que ninguém precise explicá-la.
 
+### Cartão de backlog (Trabalho)
+Um cartão por entrada de backlog filtrada pela spec selecionada, na coluna
+central da aba **Trabalho** — distinto da lista de subtarefas abaixo, que é da
+aba **Agora**.
+
+O cartão inteiro assume **um tom**, derivado do marcador: `[•]` → green ("Em
+curso"), `[ ]` disponível → blue ("Disponível"), `[ ]` indisponível → meta
+("Pendente"), `[!]` → amber ("Bloqueado"), `[x]` → green ("Feito"). O tom
+pinta três coisas ao mesmo tempo — a borda do cartão, o `ID` em mono no canto
+superior esquerdo e o **rótulo de status** no canto superior direito — e o
+fundo recebe o véu `-soft` correspondente. O rótulo de status aqui é **texto
+mono em versal, sem chip nem ponto**: o cartão já é a moldura, e um chip
+dentro de uma caixa colorida repete a mesma informação três vezes. Continua
+valendo a regra da seção 3 (tom **e** texto, nunca só cor) — o que não se usa
+aqui é o componente `StatusPill`, que permanece a forma para status fora de
+um cartão tonalizado.
+
+Corpo do cartão com o texto da entrada. O rodapé tem sempre o botão secundário
+**"Tarefas"**, que abre o modal descrito abaixo — é leitura, não execução, e
+por isso existe também em read-only. Quando execução estiver habilitada, o
+rodapé ganha ao lado dele o botão que nomeia a ação — `▶ Retomar` (no tom)
+para `[•]`, `▶ Começar` (primário sólido) para `[ ]` disponível. O cartão
+nunca reordena por status: a ordem é a do `BACKLOG.md` filtrado, invertida
+(seção 5), e nada além disso a altera — uma tarefa não sobe por estar em
+curso nem desce por estar feita.
+
+O cartão é selecionável e a seleção governa a coluna de changelog, então a
+área clicável de seleção é o corpo do cartão (ID, status e texto), nunca o
+cartão inteiro: um botão dentro de outro botão não existe em HTML, e o rodapé
+precisa das próprias ações.
+
+### Modal de tarefas do backlog (Trabalho)
+Aberto pelo botão "Tarefas" de um cartão de backlog. Mostra as subtarefas
+daquele backlog **na mesma forma da lista de subtarefas da aba Agora**
+(marcador + rótulo textual + ID + texto, item atual destacado, mais recente no
+topo), porque é a mesma coisa vista de outro lugar — repetir a forma é o que
+deixa isso óbvio.
+
+A fonte do dado muda conforme o backlog, e o modal diz qual está usando:
+
+- **Backlog ativo** (o do `TODO.md` corrente): as subtarefas reais, com seus
+  marcadores vivos — pendente, em execução, bloqueada, feita — e o contador
+  verdadeiro "N de M concluídas".
+- **Qualquer outro backlog**: o `TODO.md` já foi substituído, então as
+  subtarefas dele só existem como registros de changelog. O modal lista uma
+  linha por registro daquele `Backlog:` — todas concluídas por definição, já
+  que um registro existir *é* a conclusão (transição 4 do protocolo) — com o
+  contador "N executadas". O modal nunca inventa marcador para subtarefa que
+  não pode mais ser observada.
+
+Diálogo com `role="dialog"`, `aria-modal`, rótulo, foco preso enquanto aberto
+e fechamento por `Esc` e por botão — as mesmas regras do PreflightModal
+(seção 7).
+
+O cartão inteiro é clicável (é o próprio controle, não um botão dentro dele) e
+seleciona qual backlog filtra a coluna de changelog ao lado — mesma convenção
+visual de seleção do cartão de spec (`is-selected`: borda `--blue-line`, fundo
+`--blue-soft`). O primeiro cartão da lista filtrada é selecionado por padrão;
+trocar de spec ou perder a entrada selecionada reconcilia para o primeiro
+disponível, nunca para uma seleção órfã.
+
+### Cartão de changelog (Trabalho)
+Um registro por entrada do changelog cujo `Backlog` bate com o cartão de
+backlog selecionado na coluna ao lado — nunca o documento inteiro. **Não é uma
+caixa**: é uma régua vertical de acento (`--green-line`) à esquerda, sem borda
+nem fundo. Changelog é histórico, não trabalho selecionável; dar a ele a mesma
+moldura do cartão de backlog sugeriria que se pode agir nele. Cabeçalho em
+mono com `{data} · {T-ID} · {B-ID}`; corpo com o título do registro (a
+mesma frase do cabeçalho `## <data> - <T-ID> - <título>` do changelog) em
+destaque; rodapé com uma linha mono "evidência: {texto}". Mais recentes primeiro,
+na mesma ordem em que `relay-core` devolve os registros (o arquivo já os
+mantém assim). Sem cartão de backlog selecionado, a coluna mostra o empty
+state convidando a selecionar um; com seleção mas sem registros, mostra que
+esse backlog ainda não tem changelog — nunca confunde os dois casos com a
+mesma mensagem.
+
 ### Lista de subtarefas (checklist)
 Cada item combina **marcador + rótulo textual** à direita — `[x]` → "Feito",
 `[•]` → "Em execução", `[!]` → "Bloqueado", `[ ]` → "Pendente" — nunca só o
@@ -333,6 +517,14 @@ glifo do marcador (mesma regra do StatusPill: tom + texto, nunca só cor). O
 item `[•]` ativo tem fundo destacado (`--panel-2` ou tom sutil do status),
 distinguindo-o visualmente sem depender só do rótulo. O cabeçalho da lista
 mostra o contador verdadeiro ("N de M concluídas"), nunca percentual.
+
+Na tela principal (aba **Agora**), a lista renderiza em **ordem decrescente**
+— a subtarefa mais recente (a atual, `[•]`, quando existir) sempre no topo,
+independentemente da ordem textual do `TODO.md`, que continua sem carregar
+esse significado (seção 5, "Dependencies" do protocolo). O cabeçalho da lista
+fica fixo; o corpo tem altura máxima e rolagem interna própria quando o número
+de subtarefas excede o espaço disponível, para que Header, HandoffCard e a
+lista caibam juntos numa única viewport sem rolagem de página.
 
 ### Terminal
 - **Embutido**: `xterm.js` sobre PTY via WebSocket; alt-screen, mouse tracking e
@@ -395,10 +587,22 @@ nenhum texto informativo pode herdar esse valor.
 
 ### Header
 Logotipo "Relay" com nome do workspace e caminho completo, abas **Agora** /
-**Trabalho** para alternar tela principal e segunda visão, um selo compacto do
-harness ativo — iniciais coloridas, nome, "sessão"/escopo do consentimento —
-que abre o **seletor de harness e consentimento** ao clicar, e o estado
-derivado em StatusPill à direita. Não carrega ação primária.
+**Trabalho** para alternar tela principal e segunda visão e o estado derivado
+em StatusPill à direita. A aba escolhida sobrevive a um reload — guardada em
+`sessionStorage`, por aba do browser, nunca na URL: a segunda visão é um
+painel, não uma rota, e o non-goal contra roteador client-side continua de pé. Quando execução estiver habilitada, inclui também um
+selo compacto do harness ativo — iniciais coloridas, nome, "sessão"/escopo do
+consentimento — que abre o **seletor de harness e consentimento** ao clicar.
+No produto read-only esse selo não é montado; a proveniência escrita no handoff
+continua visível. O Header não carrega ação primária.
+
+### Estado de atualização e conexão
+
+Um rótulo textual compacto, anunciado por uma região de status, distingue os
+três estados do dado: **Atualizado**, **Atualizando** e **Desatualizado**. A
+transição para Atualizando conserva o último snapshot estável; Desatualizado
+significa que a conexão caiu depois de existir dado. O rótulo não bloqueia a
+leitura, não usa animação contínua e nunca depende só de cor.
 
 ### Empty states
 Texto claro quando não há handoff, backlog ou especificação — nunca um painel
@@ -438,6 +642,11 @@ só quando não há nem trabalho a escolher.
 - **Autoridade:** este documento vence sobre protótipos e sobre código.
 - **Ordem de mudança:** token ou componente muda primeiro aqui, depois no
   código. Um protótipo não vira token por existir; ele entra aqui por decisão.
+- **Estado oficial:** desde 2026-09-11 as seções 2 a 7 descrevem a interface
+  implementada, verificada em execução contra um repositório Relay real. Uma
+  divergência entre este documento e a tela é defeito de um dos dois e se
+  resolve aqui primeiro — não é margem de interpretação. Uma divergência entre
+  este documento e um protótipo não é divergência: o protótipo é histórico.
 - **Camada:** este documento vive em `docs/design-system/` com a proposta e os
   protótipos. A arquitetura vive na ADR; decisões de desenho e seu raciocínio
   ficam aqui e na proposta. Não duplicar conteúdo entre camadas.

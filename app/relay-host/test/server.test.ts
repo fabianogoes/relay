@@ -8,7 +8,7 @@ import { listSpecs } from '../src/specs.ts'
 import { preview } from '../src/launcher.ts'
 import { makeWorkspace } from '../support/workspace.ts'
 import { WebSocket } from 'ws'
-import type { UiPayload } from 'relay-core'
+import { parseChangelog, type UiPayload } from 'relay-core'
 
 const TOKEN = 'test-token'
 
@@ -22,6 +22,7 @@ function makeDeps(workspace: string): ServerDeps {
     payload: () => buildPayload(read(), { workspace, execEnabled: true }),
     specs: () => listSpecs(read(), backlogSpecs()),
     changelog: () => read().changelog,
+    changelogEntries: () => parseChangelog(read().changelog),
     spec: (id) => read().specs[`.specs/${id}`] ?? null,
     harnesses: () => [{ id: 'test', name: 'Test', version: '1.0.0', state: 'installed' }],
     launchPreview: (req) => {
@@ -152,6 +153,36 @@ test('API com token e same-origin devolve dado', async () => {
   }
 })
 
+test('GET /api/changelog/entries devolve registros estruturados por backlog', async () => {
+  const ws = makeWorkspace([
+    [
+      '.orchestration/CHANGELOG.md',
+      '# Change log\n\n## 2026-09-10 - T-001 - Titulo do registro\n- Backlog: B-001\n- Spec: .specs/20260907-001-teste.md\n- Result: breve.\n- Evidence: vitest 4/4\n- Criteria: A-001\n',
+    ],
+  ])
+  const server = await createRelayServer({ workspace: ws.dir, execEnabled: true, token: TOKEN, deps: makeDeps(ws.dir) })
+  const base = `http://127.0.0.1:${server.port}`
+  try {
+    const res = await request(base, '/api/changelog/entries', { token: TOKEN, fetchSite: 'same-origin' })
+    assert.equal(res.status, 200)
+    const entries = await res.json()
+    assert.deepEqual(entries, [
+      {
+        date: '2026-09-10',
+        todoId: 'T-001',
+        title: 'Titulo do registro',
+        backlogId: 'B-001',
+        spec: '.specs/20260907-001-teste.md',
+        evidence: 'vitest 4/4',
+        criteria: ['A-001'],
+      },
+    ])
+  } finally {
+    await server.close()
+    ws.cleanup()
+  }
+})
+
 test('rota de lançamento: POST /api/launch/preview compõe o plano, sem shell', async () => {
   const ws = makeWorkspace()
   const server = await createRelayServer({ workspace: ws.dir, execEnabled: true, token: TOKEN, deps: makeDeps(ws.dir) })
@@ -225,11 +256,15 @@ test('rota embutida exige exec ligado e launchEmbedded; sem ela, 404', async () 
   }
 })
 
-function connectWs(url: string, token: string): Promise<{ ws: WebSocket; messages: UiPayload[] }> {
+type RelayMessage =
+  | { kind: 'snapshot'; payload: UiPayload }
+  | { kind: 'refreshing' }
+
+function connectWs(url: string, token: string): Promise<{ ws: WebSocket; messages: RelayMessage[] }> {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(url, `relay.${token}`, { origin: `http://127.0.0.1:${new URL(url).port}` })
-    const messages: UiPayload[] = []
-    ws.on('message', (data) => messages.push(JSON.parse(data.toString()) as UiPayload))
+    const messages: RelayMessage[] = []
+    ws.on('message', (data) => messages.push(JSON.parse(data.toString()) as RelayMessage))
     ws.once('open', () => resolve({ ws, messages }))
     ws.once('error', reject)
     ws.once('unexpected-response', (_req, res) => {
@@ -240,7 +275,7 @@ function connectWs(url: string, token: string): Promise<{ ws: WebSocket; message
   })
 }
 
-async function firstMessage(messages: UiPayload[]): Promise<UiPayload> {
+async function firstMessage(messages: RelayMessage[]): Promise<RelayMessage> {
   if (messages.length > 0) return messages[0]
   return new Promise((resolve) => {
     const iv = setInterval(() => {
@@ -252,17 +287,59 @@ async function firstMessage(messages: UiPayload[]): Promise<UiPayload> {
   })
 }
 
-test('WebSocket entrega UiPayload na conexão e recusa token errado', async () => {
+async function waitForMessage(
+  messages: RelayMessage[],
+  predicate: (message: RelayMessage) => boolean,
+): Promise<RelayMessage> {
+  const existing = messages.find(predicate)
+  if (existing) return existing
+  return new Promise((resolve) => {
+    const iv = setInterval(() => {
+      const match = messages.find(predicate)
+      if (match) {
+        clearInterval(iv)
+        resolve(match)
+      }
+    }, 5)
+  })
+}
+
+test('WebSocket entrega snapshot envelopado na conexao e sinaliza refreshing', async () => {
   const ws = makeWorkspace()
   const server = await createRelayServer({ workspace: ws.dir, execEnabled: true, token: TOKEN, deps: makeDeps(ws.dir) })
   const url = `ws://127.0.0.1:${server.port}/ws`
   try {
     const client = await connectWs(url, TOKEN)
     const first = await firstMessage(client.messages)
-    assert.equal(first.state.kind, 'ok')
+    assert.equal(first.kind, 'snapshot')
+    if (first.kind === 'snapshot') assert.equal(first.payload.state.kind, 'ok')
+
+    server.broadcastRefreshing()
+    const refreshing = await waitForMessage(client.messages, (message) => message.kind === 'refreshing')
+    assert.deepEqual(refreshing, { kind: 'refreshing' })
     client.ws.close()
 
     await assert.rejects(connectWs(url, 'token-errado'), /unexpected-response: 403/)
+  } finally {
+    await server.close()
+    ws.cleanup()
+  }
+})
+
+test('cliente que conecta durante transicao recebe refreshing antes do proximo snapshot', async () => {
+  const ws = makeWorkspace()
+  const server = await createRelayServer({ workspace: ws.dir, execEnabled: false, token: TOKEN, deps: makeDeps(ws.dir) })
+  const url = `ws://127.0.0.1:${server.port}/ws`
+  try {
+    server.broadcastRefreshing()
+    const client = await connectWs(url, TOKEN)
+    const first = await firstMessage(client.messages)
+    assert.deepEqual(first, { kind: 'refreshing' })
+
+    server.broadcast()
+    const snapshot = await waitForMessage(client.messages, (message) => message.kind === 'snapshot')
+    assert.equal(snapshot.kind, 'snapshot')
+    client.ws.close()
   } finally {
     await server.close()
     ws.cleanup()

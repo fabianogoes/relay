@@ -4,7 +4,7 @@ import { existsSync, readFileSync, statSync } from 'node:fs'
 import { extname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { WebSocket, WebSocketServer } from 'ws'
-import type { UiPayload } from 'relay-core'
+import type { ChangelogRecord, UiPayload } from 'relay-core'
 import type { Harness, LaunchPlan } from './harness.ts'
 import type { LaunchRequest, LaunchResult } from './launcher.ts'
 import type { SpecSummary } from './specs.ts'
@@ -29,6 +29,7 @@ export interface ServerDeps {
   payload(): UiPayload
   specs(): SpecSummary[]
   changelog(): string
+  changelogEntries(): ChangelogRecord[]
   spec(id: string): string | null
   harnesses(): Harness[]
   launchPreview(request: LaunchRequest): LaunchPlan | null
@@ -60,10 +61,15 @@ export interface RelayServer {
   address: string
   close(): Promise<void>
   broadcast(): void
+  broadcastRefreshing(): void
   termBroadcast(runId: string, data: string): void
   termExit(runId: string, code: number | null): void
   termDisk(runId: string, entries: unknown): void
 }
+
+export type RelayMessage =
+  | { kind: 'snapshot'; payload: UiPayload }
+  | { kind: 'refreshing' }
 
 function json(res: ServerResponse, status: number, body: unknown): void {
   res.writeHead(status, { 'content-type': 'application/json; charset=utf-8' })
@@ -160,10 +166,19 @@ export function createRelayServer(options: RelayServerOptions): Promise<RelaySer
   const { token, workspace, execEnabled, deps, port = 0 } = options
   const clients = new Set<WebSocket>()
   let serverOrigin = ''
+  let refreshing = false
 
   function broadcast(): void {
-    const payload = deps.payload()
-    const data = JSON.stringify(payload)
+    refreshing = false
+    const data = JSON.stringify({ kind: 'snapshot', payload: deps.payload() } satisfies RelayMessage)
+    for (const client of clients) {
+      if (client.readyState === WebSocket.OPEN) client.send(data)
+    }
+  }
+
+  function broadcastRefreshing(): void {
+    refreshing = true
+    const data = JSON.stringify({ kind: 'refreshing' } satisfies RelayMessage)
     for (const client of clients) {
       if (client.readyState === WebSocket.OPEN) client.send(data)
     }
@@ -319,6 +334,10 @@ export function createRelayServer(options: RelayServerOptions): Promise<RelaySer
       return
     }
     if (route === 'changelog') {
+      if (parts[2] === 'entries') {
+        json(res, 200, deps.changelogEntries())
+        return
+      }
       text(res, 200, deps.changelog())
       return
     }
@@ -448,7 +467,10 @@ export function createRelayServer(options: RelayServerOptions): Promise<RelaySer
       clients.add(ws)
       ws.on('close', () => clients.delete(ws))
       ws.on('error', () => clients.delete(ws))
-      ws.send(JSON.stringify(deps.payload()))
+      const initial: RelayMessage = refreshing
+        ? { kind: 'refreshing' }
+        : { kind: 'snapshot', payload: deps.payload() }
+      ws.send(JSON.stringify(initial))
     })
   })
 
@@ -460,6 +482,7 @@ export function createRelayServer(options: RelayServerOptions): Promise<RelaySer
         port: address.port,
         address: address.address,
         broadcast,
+        broadcastRefreshing,
         termBroadcast,
         termExit,
         termDisk,

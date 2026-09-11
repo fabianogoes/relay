@@ -1,4 +1,5 @@
 export { deriveState } from './derive.ts'
+export { parseChangelog } from './parse.ts'
 export type {
   RelayFiles,
   RelayState,
@@ -11,3 +12,4 @@ export type {
   Environment,
   UiPayload,
 } from './types.ts'
+export type { ChangelogRecord } from './parse.ts'

@@ -28,3 +28,7 @@
 - [ ] B-026 - Dialogos e estrutura semantica cumprem acessibilidade por construcao (spec: `.specs/20260907-013-ui-acessibilidade-e-conformidade.md`)
 - [ ] B-027 - Componentes, acoes e layouts convergem com o design system (spec: `.specs/20260907-013-ui-acessibilidade-e-conformidade.md`)
 - [ ] B-028 - Regressoes de UI, auditoria e documentacao refletem o produto atual (spec: `.specs/20260907-013-ui-acessibilidade-e-conformidade.md`) (needs: B-025, B-026, B-027)
+- [x] B-029 - Contrato read-only padrao e entrada por workspace explicito (spec: `.specs/20260910-001-observador-read-only.md`)
+- [x] B-030 - WebSocket distingue transicao de snapshot estavel (spec: `.specs/20260910-001-observador-read-only.md`)
+- [x] B-031 - As cinco fontes do workflow ficam legiveis e reativas sem superficie de execucao (spec: `.specs/20260910-001-observador-read-only.md`) (needs: B-029, B-030)
+- [ ] B-032 - Regressoes e documentacao validam a primeira versao observadora (spec: `.specs/20260910-001-observador-read-only.md`) (needs: B-019, B-031)
